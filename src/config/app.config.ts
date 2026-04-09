@@ -15,40 +15,40 @@ export const appConfig: AppConfig = {
   theme: {
     defaultTheme: 'system',
     light: {
-      primary: '#3b82f6', // blue-500
-      secondary: '#8b5cf6', // violet-500
+      primary: '#4f46e5', // indigo-600
+      secondary: '#0ea5e9', // sky-500
       accent: '#f59e0b', // amber-500
-      background: '#ffffff',
-      surface: '#f9fafb', // gray-50
-      text: '#111827', // gray-900
-      textSecondary: '#6b7280', // gray-500
-      border: '#e5e7eb', // gray-200
-      muted: '#f3f4f6', // gray-100
-      link: '#3b82f6', // blue-500
-      linkHover: '#2563eb', // blue-600
-      emphasis: '#1e40af', // blue-800
+      background: '#f8fafc', // slate-50
+      surface: '#ffffff',
+      text: '#0f172a', // slate-900
+      textSecondary: '#64748b', // slate-500
+      border: '#e2e8f0', // slate-200
+      muted: '#f1f5f9', // slate-100
+      link: '#4f46e5', // indigo-600
+      linkHover: '#4338ca', // indigo-700
+      emphasis: '#1e1b4b', // indigo-950
       success: '#10b981', // emerald-500
       warning: '#f59e0b', // amber-500
       error: '#ef4444', // red-500
-      info: '#3b82f6', // blue-500
+      info: '#0ea5e9', // sky-500
     },
     dark: {
-      primary: '#60a5fa', // blue-400
-      secondary: '#a78bfa', // violet-400
+      primary: '#818cf8', // indigo-400
+      secondary: '#38bdf8', // sky-400
       accent: '#fbbf24', // amber-400
-      background: '#111827', // gray-900
-      surface: '#1f2937', // gray-800
-      text: '#f9fafb', // gray-50
-      textSecondary: '#9ca3af', // gray-400
-      border: '#374151', // gray-700
-      muted: '#1f2937', // gray-800
-      link: '#60a5fa', // blue-400
-      linkHover: '#93bbfd', // blue-300
-      emphasis: '#60a5fa', // blue-400
+      background: '#0f172a', // slate-900
+      surface: '#1e293b', // slate-800
+      text: '#f8fafc', // slate-50
+      textSecondary: '#94a3b8', // slate-400
+      border: '#334155', // slate-700
+      muted: '#1e293b', // slate-800
+      link: '#818cf8', // indigo-400
+      linkHover: '#a5b4fc', // indigo-300
+      emphasis: '#312e81', // indigo-900
       success: '#34d399', // emerald-400
       warning: '#fbbf24', // amber-400
       error: '#f87171', // red-400
-      info: '#60a5fa', // blue-400
+      info: '#38bdf8', // sky-400
     },
   },
 

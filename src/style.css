@@ -5,22 +5,22 @@
 /* Colors from app.config.ts - Tailwind v4 @theme with CSS variable references */
 /* Default values are set here, but will be overridden by theme system CSS variables */
 @theme {
-  --color-primary: #3b82f6;
-  --color-secondary: #8b5cf6;
+  --color-primary: #4f46e5;
+  --color-secondary: #0ea5e9;
   --color-accent: #f59e0b;
-  --color-background: #ffffff;
-  --color-surface: #f9fafb;
-  --color-text: #111827;
-  --color-text-secondary: #6b7280;
-  --color-border: #e5e7eb;
-  --color-muted: #f3f4f6;
-  --color-link: #3b82f6;
-  --color-link-hover: #2563eb;
-  --color-emphasis: #1e40af;
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-text: #0f172a;
+  --color-text-secondary: #64748b;
+  --color-border: #e2e8f0;
+  --color-muted: #f1f5f9;
+  --color-link: #4f46e5;
+  --color-link-hover: #4338ca;
+  --color-emphasis: #1e1b4b;
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-error: #ef4444;
-  --color-info: #3b82f6;
+  --color-info: #0ea5e9;
 
   /* Font variables */
   --font-primary: var(--font-primary);
