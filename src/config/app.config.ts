@@ -2,12 +2,13 @@ import type { AppConfig } from './types';
 
 export const appConfig: AppConfig = {
   app: {
-    name: 'Vue Template',
-    title: 'Vue Template - Modern Vue 3 Application',
-    description: 'A modern Vue 3 application built with TypeScript, Tailwind CSS, and Vite',
+    name: 'ADHDx',
+    title: 'ADHDx - ADHD Decision Support System',
+    description:
+      'ADHDx is a decision support system for ADHD patients. It helps doctors make decisions about their patients ADHD treatment.',
     version: '1.0.0',
-    author: 'Your Name',
-    url: 'https://example.com',
+    author: 'Bitxero',
+    url: 'https://adhdx.bitxero-iq.com',
     language: 'en',
   },
 
@@ -109,12 +110,20 @@ export const appConfig: AppConfig = {
   },
 
   seo: {
-    title: 'Vue Template - Modern Vue 3 Application',
-    description: 'A modern Vue 3 application built with TypeScript, Tailwind CSS, and Vite',
-    keywords: ['vue', 'vue3', 'typescript', 'tailwind', 'vite'],
+    title: 'ADHDx - ADHD Decision Support System',
+    description:
+      'ADHDx is a decision support system for ADHD patients. It helps doctors make decisions about their patients ADHD treatment.',
+    keywords: [
+      'ADHD',
+      'ADHDx',
+      'ADHD Decision Support System',
+      'ADHD Treatment',
+      'ADHD Management',
+      'ADHD Support',
+    ],
     robots: 'index, follow',
     openGraph: {
-      siteName: 'Vue Template',
+      siteName: 'ADHDx',
       type: 'website',
       locale: 'en_US',
     },
