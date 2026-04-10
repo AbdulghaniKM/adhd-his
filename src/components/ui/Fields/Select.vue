@@ -139,7 +139,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   placeholder: '',
   readonly: false,
-  searchable: true,
+  searchable: false,
 })
 
 const emit = defineEmits<{

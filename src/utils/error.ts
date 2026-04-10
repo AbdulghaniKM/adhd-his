@@ -9,7 +9,13 @@ export function extractApiErrorMessage(error: unknown): string {
       if (messages.length) return messages.join('\n');
     }
 
-    return data?.msg ?? data?.message ?? data?.title ?? 'An unexpected error occurred';
+    return (
+      data?.errorMessage ??
+      data?.msg ??
+      data?.message ??
+      data?.title ??
+      'An unexpected error occurred'
+    );
   }
   return (error as Error).message ?? 'An unexpected error occurred';
 }

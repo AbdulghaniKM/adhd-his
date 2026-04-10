@@ -3,6 +3,7 @@ import api from '../plugins/axios';
 import { objectToFormData } from '../utils/form';
 import type {
   DoctorResponse,
+  DoctorProfileResponse,
   CreateDoctorRequest,
   UpdateDoctorRequest,
   ApiResponse,
@@ -58,6 +59,25 @@ const doctorService = {
 
   deletePermanent: async (id: string) => {
     const response = await api.delete<ApiSingleResponse<null>>(API_PATHS.DOCTORS.SINGLE(id));
+    return response.data;
+  },
+
+  getProfile: async (id: string) => {
+    const response = await api.get<ApiSingleResponse<DoctorResponse>>(
+      API_PATHS.DOCTORS.SINGLE(id),
+    );
+    return response.data;
+  },
+
+  updateProfile: async (id: string, data: any) => {
+    const formData = objectToFormData(data);
+    const response = await api.put<ApiSingleResponse<DoctorProfileResponse>>(
+      API_PATHS.DOCTORS.PROFILE(id),
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      },
+    );
     return response.data;
   },
 };

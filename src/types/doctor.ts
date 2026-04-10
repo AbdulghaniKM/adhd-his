@@ -50,3 +50,40 @@ export interface CreateDoctorRequest {
 export interface UpdateDoctorRequest extends Partial<Omit<CreateDoctorRequest, 'Password'>> {
   Password?: string;
 }
+
+export interface DoctorProfileResponse extends DoctorResponse {
+  availability?: AvailabilityResponse[];
+  educations?: EducationResponse[];
+}
+
+export interface AvailabilityResponse {
+  id: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  isDeleted: boolean;
+}
+
+export interface CreateAvailabilityRequest {
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+}
+
+export interface UpdateAvailabilityRequest extends Partial<CreateAvailabilityRequest> {}
+
+export interface EducationResponse {
+  id: string;
+  degree: string;
+  institution: string;
+  year: number;
+  isDeleted: boolean;
+}
+
+export interface CreateEducationRequest {
+  degree: string;
+  institution: string;
+  year: number;
+}
+
+export interface UpdateEducationRequest extends Partial<CreateEducationRequest> {}

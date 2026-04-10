@@ -119,6 +119,11 @@
 
   const doctorLinks = [
     { label: 'Dashboard', to: '/doctor', icon: 'icon-[heroicons-outline--home]' },
+    { label: 'Patients', to: '/doctor/patients', icon: 'icon-[heroicons-outline--users]' },
+    { label: 'Units', to: '/doctor/labs', icon: 'icon-[heroicons-outline--beaker]' },
+    { label: 'Depts', to: '/doctor/departments', icon: 'icon-[heroicons-outline--building-office]' },
+    { label: 'Calendar', to: '/doctor/appointments', icon: 'icon-[heroicons-outline--calendar]' },
+    { label: 'Settings', to: '/doctor/settings', icon: 'icon-[heroicons-outline--cog-6-tooth]' },
   ];
 
   const navigationLinks = computed(() => {
