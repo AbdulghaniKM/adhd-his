@@ -3,7 +3,7 @@
     class="border-border bg-surface/80 sticky top-0 z-50 flex h-14 items-center justify-between border-b px-6 backdrop-blur-md"
   >
     <!-- Logo -->
-    <router-link to="/" class="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+    <router-link to="/" class="flex items-center gap-2.5 transition-opacity hover:opacity-80">
       <div class="bg-primary flex size-7 items-center justify-center rounded-lg shadow-sm">
         <span class="icon-[mdi--hospital-box] text-sm text-white" />
       </div>
@@ -71,12 +71,12 @@
       <AppButton
         v-if="store.token"
         icon-only
-        variant="ghost"
+        variant="outline"
         size="sm"
-        icon="mdi--logout"
-        tooltip="Sign out"
+        icon="icon-[mdi--logout]"
+        tooltip="Logout"
         tooltip-placement="bottom"
-        class="hover:bg-error/10! hover:text-error!"
+        class="hover:bg-error/10! text-error! hover:text-error!"
         @click="handleLogout"
       />
     </div>
@@ -97,10 +97,11 @@
   const store = AuthStore();
   const router = useRouter();
 
-  const isAdmin = computed(() => 
-    store.role === AppRole.ADMIN || 
-    store.role === AppRole.SUPER_ADMIN ||
-    String(store.role).toLowerCase().includes('admin')
+  const isAdmin = computed(
+    () =>
+      store.role === AppRole.ADMIN ||
+      store.role === AppRole.SUPER_ADMIN ||
+      String(store.role).toLowerCase().includes('admin'),
   );
 
   const isDoctor = computed(() => store.role === AppRole.DOCTOR);
