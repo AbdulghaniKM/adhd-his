@@ -1,82 +1,94 @@
 <template>
   <header
-    class="border-border bg-surface/80 sticky top-0 z-50 flex h-14 items-center justify-between border-b px-6 backdrop-blur-md"
+    class="border-border/40 bg-surface/60 sticky top-0 z-[60] flex h-16 items-center justify-between border-b px-8 backdrop-blur-xl transition-all duration-300"
   >
-    <!-- Logo -->
-    <router-link to="/" class="flex items-center gap-2.5 transition-opacity hover:opacity-80">
-      <div class="bg-primary flex size-7 items-center justify-center rounded-lg shadow-sm">
-        <span class="icon-[mdi--hospital-box] text-sm text-white" />
+    <!-- Logo Section -->
+    <router-link to="/" class="group flex items-center gap-3 transition-transform hover:scale-[1.02]">
+      <div
+        class="bg-primary/10 flex size-9 items-center justify-center rounded-xl shadow-sm ring-1 ring-primary/20 transition-all group-hover:bg-primary group-hover:shadow-primary/25"
+      >
+        <span class="icon-[mdi--hospital-box] text-primary text-xl transition-colors group-hover:text-white" />
       </div>
-      <AppText variant="span" size="sm" weight="bold" color="text">ADHDx</AppText>
+      <div class="flex flex-col leading-none">
+        <AppText variant="span" size="1.125rem" weight="bold" color="text" class="tracking-tight">
+          ADHD<span class="text-primary">x</span>
+        </AppText>
+        <AppText variant="span" size="0.625rem" weight="semibold" color="text-secondary" class="uppercase tracking-[0.1em]">
+          Health System
+        </AppText>
+      </div>
     </router-link>
 
-    <!-- Navigation (Centered) -->
-    <nav v-if="isAdmin || isDoctor" class="hidden items-center gap-1 md:flex">
+    <!-- Navigation (Centered & Floating) -->
+    <nav v-if="isAdmin || isDoctor" class="bg-muted/40 border-border/40 hidden items-center gap-1 rounded-2xl border p-1 md:flex shadow-xs backdrop-blur-md">
       <router-link
         v-for="link in navigationLinks"
         :key="link.to"
         :to="link.to"
-        class="text-text-secondary hover:text-text hover:bg-muted relative flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all"
-        active-class="bg-primary/10 text-primary!"
+        class="text-text-secondary hover:text-text hover:bg-surface relative flex h-9 items-center gap-2 rounded-xl px-4 text-xs font-semibold transition-all duration-200"
+        active-class="bg-surface text-primary! shadow-sm ring-1 ring-border/50"
       >
-        <span :class="link.icon" class="text-sm" />
+        <span :class="link.icon" class="text-base" />
         {{ link.label }}
       </router-link>
     </nav>
 
-    <!-- Right side -->
-    <div class="flex items-center gap-3">
-      <!-- User chip -->
-      <div
-        v-if="store.user"
-        class="border-border bg-muted flex items-center gap-2 rounded-full border px-3 py-1"
-      >
-        <span class="icon-[mdi--account-circle] text-text-secondary text-base" />
-        <AppText variant="span" size="xs" weight="medium" color="text">
-          {{ store.user.name }}
-        </AppText>
-        <AppText
-          variant="span"
-          size="0.625rem"
-          weight="semibold"
-          color="primary"
-          class="bg-primary/10 rounded-full px-1.5 py-0.5"
-        >
-          {{ store.role }}
-        </AppText>
-      </div>
-
-      <!-- Theme toggle -->
+    <!-- Actions Section -->
+    <div class="flex items-center gap-4">
+      <!-- Theme Toggle (Refined) -->
       <AppTooltip
-        :content="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+        :content="isDark ? 'Light Appearance' : 'Dark Appearance'"
         placement="bottom"
       >
         <button
           type="button"
-          class="theme-toggle border-border bg-muted text-text-secondary hover:bg-surface hover:text-text relative flex size-8 items-center justify-center rounded-lg border transition-colors duration-150"
+          class="border-border/40 bg-muted/30 text-text-secondary hover:bg-surface hover:text-text flex size-9 items-center justify-center rounded-xl border transition-all duration-200 hover:shadow-sm"
           @click="toggleTheme"
         >
           <span
-            class="icon-[mdi--weather-sunny] text-base transition-all duration-200"
-            :class="isDark ? 'scale-0 opacity-0' : 'scale-100 opacity-100'"
+            class="icon-[mdi--weather-sunny] text-lg transition-all duration-300"
+            :class="isDark ? 'scale-0 opacity-0 rotate-90' : 'scale-100 opacity-100 rotate-0'"
           />
           <span
-            class="icon-[mdi--weather-night] absolute text-base transition-all duration-200"
-            :class="isDark ? 'scale-100 opacity-100' : 'scale-0 opacity-0'"
+            class="icon-[mdi--weather-night] absolute text-lg transition-all duration-300"
+            :class="isDark ? 'scale-100 opacity-100 rotate-0' : 'scale-0 opacity-0 -rotate-90'"
           />
         </button>
       </AppTooltip>
 
-      <!-- Logout -->
+      <!-- User Chip (Modernized) -->
+      <div
+        v-if="store.user"
+        class="border-border/40 bg-surface/50 hidden items-center gap-3 rounded-2xl border pl-1.5 pr-3 py-1.5 shadow-xs transition-all hover:bg-surface sm:flex"
+      >
+        <div class="bg-primary/10 text-primary flex size-7 items-center justify-center rounded-xl font-bold text-xs ring-1 ring-primary/20">
+          {{ store.user.name.charAt(0) }}
+        </div>
+        <div class="flex flex-col">
+          <AppText variant="span" size="0.75rem" weight="bold" color="text" class="leading-none">
+            {{ store.user.name }}
+          </AppText>
+          <AppText
+            variant="span"
+            size="0.625rem"
+            weight="medium"
+            color="primary"
+            class="leading-none opacity-80"
+          >
+            {{ store.role }}
+          </AppText>
+        </div>
+      </div>
+
+      <!-- Logout (Sleek) -->
       <AppButton
         v-if="store.token"
-        icon-only
-        variant="outline"
-        size="sm"
+        variant="ghost"
+        size="md"
         icon="icon-[mdi--logout]"
-        tooltip="Logout"
-        tooltip-placement="bottom"
-        class="hover:bg-error/10! text-error! hover:text-error!"
+        icon-only
+        tooltip="Sign Out"
+        class="text-text-secondary! hover:bg-error/10! hover:text-error! rounded-xl"
         @click="handleLogout"
       />
     </div>

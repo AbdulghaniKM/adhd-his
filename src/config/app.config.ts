@@ -15,8 +15,8 @@ export const appConfig: AppConfig = {
   theme: {
     defaultTheme: 'system',
     light: {
-      primary: '#4f46e5', // indigo-600
-      secondary: '#0ea5e9', // sky-500
+      primary: '#0d9488', // teal-600
+      secondary: '#0891b2', // cyan-600
       accent: '#f59e0b', // amber-500
       background: '#f8fafc', // slate-50
       surface: '#ffffff',
@@ -24,17 +24,17 @@ export const appConfig: AppConfig = {
       textSecondary: '#64748b', // slate-500
       border: '#e2e8f0', // slate-200
       muted: '#f1f5f9', // slate-100
-      link: '#4f46e5', // indigo-600
-      linkHover: '#4338ca', // indigo-700
-      emphasis: '#1e1b4b', // indigo-950
+      link: '#0d9488', // teal-600
+      linkHover: '#0f766e', // teal-700
+      emphasis: '#134e4a', // teal-950
       success: '#10b981', // emerald-500
       warning: '#f59e0b', // amber-500
       error: '#ef4444', // red-500
       info: '#0ea5e9', // sky-500
     },
     dark: {
-      primary: '#818cf8', // indigo-400
-      secondary: '#38bdf8', // sky-400
+      primary: '#2dd4bf', // teal-400
+      secondary: '#22d3ee', // cyan-400
       accent: '#fbbf24', // amber-400
       background: '#0f172a', // slate-900
       surface: '#1e293b', // slate-800
@@ -42,9 +42,9 @@ export const appConfig: AppConfig = {
       textSecondary: '#94a3b8', // slate-400
       border: '#334155', // slate-700
       muted: '#1e293b', // slate-800
-      link: '#818cf8', // indigo-400
-      linkHover: '#a5b4fc', // indigo-300
-      emphasis: '#312e81', // indigo-900
+      link: '#2dd4bf', // teal-400
+      linkHover: '#5eead4', // teal-300
+      emphasis: '#042f2e', // teal-950
       success: '#34d399', // emerald-400
       warning: '#fbbf24', // amber-400
       error: '#f87171', // red-400

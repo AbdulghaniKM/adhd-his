@@ -1,135 +1,110 @@
 <template>
-  <div class="w-full space-y-3">
-    <!-- ── Toolbar ────────────────────────────────────────────────────────────────────────────────────────── -->
+  <div class="w-full space-y-4">
+    <!-- ── Toolbar (Elevated) ────────────────────────────────────────────────────────────────────────── -->
     <div
       v-if="searchable || showColumnToggle || exportable || $slots['toolbar-end']"
-      class="flex w-full flex-wrap items-center justify-between gap-3"
+      class="bg-surface/50 border-border/40 relative z-10 flex w-full flex-wrap items-center justify-between gap-4 rounded-2xl border p-2 backdrop-blur-md shadow-xs"
     >
-      <div class="flex min-w-0 flex-1 items-center gap-2 sm:max-w-md">
-        <!-- Search -->
-        <div v-if="searchable" class="relative flex-1">
+      <div class="flex min-w-0 flex-1 items-center gap-3 sm:max-w-xl">
+        <!-- Search (Refined) -->
+        <div v-if="searchable" class="group relative flex-1">
           <AppIcon
             name="icon-[heroicons-outline--magnifying-glass]"
-            :size="1.125"
-            class="text-text-secondary pointer-events-none absolute start-3 top-1/2 -translate-y-1/2"
+            :size="1"
+            class="text-text-secondary group-focus-within:text-primary pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 transition-colors"
           />
           <input
             ref="searchInputRef"
             v-model="searchQuery"
             type="text"
             :placeholder="searchPlaceholder"
-            class="border-border bg-surface text-text placeholder:text-text-secondary/60 focus:border-primary focus:ring-primary/20 w-full rounded-xl border py-2 ps-9 pe-9 text-sm transition-all focus:ring-2 focus:outline-none"
+            class="bg-muted/30 border-border/40 text-text placeholder:text-text-secondary/50 focus:border-primary/50 focus:bg-surface w-full rounded-xl border py-2.5 ps-10 pe-10 text-sm transition-all focus:ring-4 focus:ring-primary/10 focus:outline-none"
           />
           <button
             v-if="searchQuery"
             type="button"
-            class="text-text-secondary hover:text-text absolute end-2.5 top-1/2 -translate-y-1/2 transition-colors"
-            aria-label="Clear search"
+            class="text-text-secondary hover:text-text absolute end-3 top-1/2 -translate-y-1/2 transition-colors"
             @click="
               searchQuery = '';
               searchInputRef?.focus();
             "
           >
-            <AppIcon name="icon-[heroicons-outline--x-mark]" :size="1" />
+            <AppIcon name="icon-[heroicons-outline--x-mark]" :size="0.875" />
           </button>
         </div>
 
-        <!-- Column Toggle -->
+        <!-- Column Toggle (Professional) -->
         <div v-if="showColumnToggle" ref="columnToggleRef" class="relative">
-          <AppButton
-            variant="outline"
-            size="md"
-            icon="icon-[heroicons-outline--view-columns]"
-            :label="`${visibleToggleableCount}/${toggleableColumns.length}`"
-            class="hidden sm:flex"
+          <button
+            type="button"
+            class="border-border/40 bg-surface hover:bg-muted/50 text-text-secondary hover:text-text flex h-[42px] items-center gap-2 rounded-xl border px-4 text-xs font-bold transition-all shadow-xs"
             @click="showColumnMenu = !showColumnMenu"
-          />
-          <AppButton
-            variant="outline"
-            size="md"
-            icon="icon-[heroicons-outline--view-columns]"
-            icon-only
-            class="sm:hidden"
-            @click="showColumnMenu = !showColumnMenu"
-          />
+          >
+            <AppIcon name="icon-[heroicons-outline--adjustments-horizontal]" :size="1" />
+            <span class="hidden sm:inline">Columns</span>
+            <span class="bg-primary/10 text-primary flex size-5 items-center justify-center rounded-lg text-[10px]">{{ visibleToggleableCount }}</span>
+          </button>
 
           <Transition
-            enter-active-class="transition duration-150 ease-out"
-            enter-from-class="opacity-0 scale-95 translate-y-1"
+            enter-active-class="transition duration-200 ease-out"
+            enter-from-class="opacity-0 scale-95 translate-y-2"
             enter-to-class="opacity-100 scale-100 translate-y-0"
-            leave-active-class="transition duration-100 ease-in"
+            leave-active-class="transition duration-150 ease-in"
             leave-from-class="opacity-100 scale-100 translate-y-0"
-            leave-to-class="opacity-0 scale-95 translate-y-1"
+            leave-to-class="opacity-0 scale-95 translate-y-2"
           >
             <div
               v-if="showColumnMenu"
-              class="border-border bg-surface absolute start-0 top-full z-50 mt-1.5 min-w-[14rem] origin-top-left rounded-2xl border p-1.5 shadow-xl shadow-black/8"
+              class="border-border/40 bg-surface absolute start-0 top-full z-[70] mt-2 min-w-[16rem] origin-top-left rounded-2xl border p-2 shadow-2xl backdrop-blur-xl"
             >
-              <div class="flex items-center justify-between px-3 py-2">
-                <p class="text-text-secondary text-xs font-semibold tracking-wider uppercase">
+              <div class="px-3 py-2">
+                <p class="text-text-secondary text-[10px] font-bold tracking-widest uppercase opacity-60">
                   Visible Columns
                 </p>
-                <span v-if="columnSavedHint" class="text-success text-[10px] font-bold uppercase">
-                  Saved
-                </span>
               </div>
-              <div class="border-border mb-1 border-t" />
-              <div class="custom-scrollbar max-h-[60vh] overflow-y-auto py-1">
+              <div class="space-y-0.5 custom-scrollbar max-h-[60vh] overflow-y-auto">
                 <button
                   v-for="col in toggleableColumns"
                   :key="col.key"
                   type="button"
-                  class="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm transition-all"
-                  :class="
-                    visibleColumnsSet.has(col.key)
-                      ? 'text-text hover:bg-primary/5'
-                      : 'text-text-secondary/60 hover:bg-muted'
-                  "
+                  class="group flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm transition-all"
+                  :class="visibleColumnsSet.has(col.key) ? 'text-text bg-primary/5' : 'text-text-secondary hover:bg-muted'"
                   @click="toggleColumn(col.key)"
                 >
                   <span class="font-medium">{{ col.label }}</span>
                   <div
-                    class="flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors duration-200"
+                    class="flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors duration-300"
                     :class="visibleColumnsSet.has(col.key) ? 'bg-primary' : 'bg-border'"
                   >
                     <div
-                      class="size-4 rounded-full bg-white shadow-sm transition-transform duration-200"
+                      class="size-4 rounded-full bg-white shadow-sm transition-transform duration-300"
                       :class="visibleColumnsSet.has(col.key) ? 'translate-x-4' : 'translate-x-0'"
                     />
                   </div>
                 </button>
               </div>
-              <div class="border-border mt-1 border-t" />
-              <button
-                type="button"
-                class="text-text-secondary hover:text-primary mt-1 flex w-full items-center justify-center gap-2 rounded-xl py-2 text-xs font-semibold transition-colors"
-                @click="resetColumnVisibility"
-              >
-                <AppIcon name="icon-[heroicons-outline--arrow-path]" :size="0.875" />
-                Reset to Defaults
-              </button>
+              <div class="border-border/40 mt-2 border-t pt-2">
+                <button
+                  type="button"
+                  class="text-primary hover:bg-primary/5 flex w-full items-center justify-center gap-2 rounded-xl py-2 text-[11px] font-bold uppercase tracking-wider transition-all"
+                  @click="resetColumnVisibility"
+                >
+                  <AppIcon name="icon-[heroicons-outline--arrow-path]" :size="0.75" />
+                  Restore Defaults
+                </button>
+              </div>
             </div>
           </Transition>
         </div>
 
-        <!-- Export Button -->
+        <!-- Export (Sleek) -->
         <AppButton
           v-if="exportable"
-          variant="success"
+          variant="outline"
           size="md"
           icon="icon-[heroicons-outline--arrow-down-tray]"
-          label="Export"
-          class="hidden sm:flex"
-          :disabled="loading || displayData.length === 0"
-          @click="exportToExcel"
-        />
-        <AppButton
-          v-if="exportable"
-          variant="success"
-          size="md"
-          icon="icon-[heroicons-outline--arrow-down-tray]"
-          icon-only
-          class="sm:hidden"
+          label="Download"
+          class="hidden h-[42px] sm:flex border-border/40! shadow-xs!"
           :disabled="loading || displayData.length === 0"
           @click="exportToExcel"
         />
@@ -140,10 +115,9 @@
       </div>
     </div>
 
-    <!-- ── Table Wrapper ───────────────────────────────────────────────────────────────────────────────────── -->
+    <!-- ── Table Wrapper (Levitated) ──────────────────────────────────────────────────────────────────────── -->
     <div
-      class="overflow-hidden rounded-2xl transition-all"
-      :class="outlined ? 'border-border bg-surface border shadow-sm' : ''"
+      class="bg-surface border-border/40 relative overflow-hidden rounded-2xl border shadow-sm transition-all"
     >
       <div
         ref="scrollContainerRef"
@@ -155,17 +129,16 @@
           class="w-full min-w-[48rem] border-collapse"
           :class="[compact ? 'table-compact' : '', !isAtEnd ? 'has-sticky-shadow' : '']"
         >
-          <!-- Header -->
+          <!-- Header (Modern) -->
           <thead>
-            <tr class="bg-muted/40 border-border border-b">
-              <!-- Selection Checkbox -->
-              <th v-if="selectable" class="w-12 px-4 py-3 text-start">
-                <div class="flex items-center justify-center">
+            <tr class="bg-muted/20 border-border/40 border-b transition-colors">
+              <th v-if="selectable" class="w-14 px-5 py-4 text-start">
+                <div class="flex items-center">
                   <input
                     type="checkbox"
                     :checked="isAllSelected"
                     :indeterminate="isPartiallySelected"
-                    class="accent-primary size-4 cursor-pointer rounded-lg"
+                    class="accent-primary size-4.5 cursor-pointer rounded-lg transition-all"
                     @change="toggleSelectAll"
                   />
                 </div>
@@ -174,27 +147,26 @@
               <th
                 v-for="column in visibleColumns"
                 :key="column.key"
-                class="px-4 py-3 text-start text-xs font-bold tracking-widest uppercase"
+                class="px-5 py-4 text-start text-[10px] font-bold tracking-[0.15em] uppercase transition-all"
                 :class="[
                   column.class,
-                  column.key === 'actions' ? 'sticky-actions-th w-px' : '',
-                  'text-text-secondary',
+                  column.key === 'actions' ? 'sticky-actions-th w-px bg-muted/30 backdrop-blur-md' : 'text-text-secondary/70',
                 ]"
               >
                 <button
                   v-if="isColumnSortable(column)"
                   type="button"
-                  class="group flex items-center gap-1.5 transition-colors"
+                  class="group flex items-center gap-2 transition-colors"
                   :class="sortKey === column.key ? 'text-primary' : 'hover:text-text'"
                   @click="handleSort(column.key)"
                 >
                   <span>{{ column.label }}</span>
                   <div
-                    class="flex size-5 items-center justify-center rounded-lg transition-all"
+                    class="flex size-5.5 items-center justify-center rounded-lg transition-all duration-300"
                     :class="
                       sortKey === column.key
-                        ? 'bg-primary scale-110 text-white'
-                        : 'bg-muted text-text-secondary opacity-0 group-hover:opacity-100'
+                        ? 'bg-primary shadow-primary/25 text-white shadow-md scale-110'
+                        : 'bg-muted/50 text-text-secondary opacity-0 group-hover:opacity-100 scale-90'
                     "
                   >
                     <AppIcon
@@ -212,74 +184,71 @@
             </tr>
           </thead>
 
-          <!-- Body -->
-          <tbody>
-            <!-- Skeleton loading -->
+          <!-- Body (Elegant) -->
+          <tbody class="divide-border/30 divide-y">
+            <!-- Skeleton (Smooth) -->
             <template v-if="loading">
               <tr
                 v-for="i in skeletonRows"
                 :key="`skeleton-${i}`"
-                class="border-border/40 border-b"
+                class="animate-pulse"
               >
-                <td v-if="selectable" class="px-4 py-3.5">
-                  <div class="bg-muted mx-auto size-4 animate-pulse rounded" />
+                <td v-if="selectable" class="px-5 py-4">
+                  <div class="bg-muted mx-auto size-4.5 rounded-lg" />
                 </td>
-                <td v-for="column in visibleColumns" :key="column.key" class="px-4 py-3.5">
+                <td v-for="column in visibleColumns" :key="column.key" class="px-5 py-4">
                   <div
-                    class="bg-muted h-4 animate-pulse rounded-lg"
-                    :class="column.key === 'actions' ? 'ms-auto w-16' : 'w-full max-w-[10rem]'"
+                    class="bg-muted h-4 rounded-full"
+                    :class="column.key === 'actions' ? 'ms-auto w-16' : 'w-full max-w-[12rem]'"
                   />
                 </td>
               </tr>
             </template>
 
-            <!-- Empty state -->
+            <!-- Empty State (Unique) -->
             <tr v-else-if="displayData.length === 0">
-              <td :colspan="visibleColumns.length + (selectable ? 1 : 0)" class="py-20 text-center">
-                <div class="flex flex-col items-center gap-4">
-                  <div
-                    class="bg-muted flex size-16 items-center justify-center rounded-3xl shadow-inner"
-                  >
+              <td :colspan="visibleColumns.length + (selectable ? 1 : 0)" class="py-24 text-center">
+                <div class="flex flex-col items-center gap-6">
+                  <div class="bg-muted/30 flex size-20 items-center justify-center rounded-[2.5rem] shadow-inner ring-1 ring-border/20">
                     <AppIcon
-                      name="icon-[heroicons-outline--inbox-stack]"
-                      :size="2"
-                      class="text-text-secondary/40"
+                      name="icon-[heroicons-outline--document-magnifying-glass]"
+                      :size="2.5"
+                      class="text-text-secondary/30"
                     />
                   </div>
-                  <div class="space-y-1">
-                    <p class="text-text text-base font-bold">{{ emptyMessage }}</p>
-                    <p v-if="searchQuery" class="text-text-secondary text-sm">
-                      No results match "{{ searchQuery }}"
+                  <div class="space-y-2">
+                    <h4 class="text-text text-xl font-bold tracking-tight">{{ emptyMessage }}</h4>
+                    <p v-if="searchQuery" class="text-text-secondary text-sm opacity-70">
+                      No matching records found for "<span class="text-primary font-semibold">{{ searchQuery }}</span>"
                     </p>
                   </div>
                   <AppButton
                     v-if="searchQuery"
-                    variant="outline"
-                    label="Clear Search"
+                    variant="ghost"
+                    label="Reset Search Filters"
                     icon="icon-[heroicons-outline--arrow-path]"
-                    size="sm"
-                    class="rounded-full"
+                    size="md"
+                    class="rounded-xl border border-border/40!"
                     @click="searchQuery = ''"
                   />
                 </div>
               </td>
             </tr>
 
-            <!-- Data rows -->
+            <!-- Data Rows (Refined) -->
             <tr
               v-for="(row, index) in displayData"
               v-else
               :key="getRowKey(row, index)"
-              class="table-row-data group border-border/40 hover:bg-primary/[0.03] border-b transition-all last:border-b-0"
-              :class="isRowSelected(row) ? 'bg-primary/[0.05]' : ''"
+              class="table-row-data group hover:bg-primary/[0.02] transition-all duration-200"
+              :class="isRowSelected(row) ? 'bg-primary/[0.04]' : ''"
             >
-              <!-- Row Checkbox -->
-              <td v-if="selectable" class="w-12 px-4 py-3">
-                <div class="flex items-center justify-center">
+              <td v-if="selectable" class="px-5 py-4">
+                <div class="flex items-center">
                   <input
                     type="checkbox"
                     :checked="isRowSelected(row)"
-                    class="accent-primary size-4 cursor-pointer rounded-lg"
+                    class="accent-primary size-4.5 cursor-pointer rounded-lg transition-all"
                     @change="toggleRowSelection(row)"
                   />
                 </div>
@@ -288,11 +257,11 @@
               <td
                 v-for="column in visibleColumns"
                 :key="column.key"
-                class="text-text min-w-0 px-4 py-3 text-sm whitespace-nowrap transition-all"
+                class="text-text min-w-0 px-5 py-4 text-sm whitespace-nowrap transition-all"
                 :class="[
                   column.class,
-                  column.key === 'actions' ? 'sticky-actions-td w-px' : '',
-                  isRowSelected(row) ? 'font-medium' : '',
+                  column.key === 'actions' ? 'sticky-actions-td w-px bg-surface group-hover:bg-surface transition-colors' : '',
+                  isRowSelected(row) ? 'font-semibold text-primary' : 'font-medium',
                 ]"
               >
                 <slot
@@ -301,20 +270,15 @@
                   :value="getValue(row, column.key)"
                   :column="column"
                 >
-                  <AppTooltip
-                    v-if="column.truncate && getValue(row, column.key)"
-                    :content="String(getValue(row, column.key))"
-                    placement="top"
-                    :dark="false"
-                  >
-                    <span
-                      class="text-text-secondary block max-w-[16rem] truncate text-start text-sm"
-                    >
+                  <template v-if="column.truncate && getValue(row, column.key)">
+                    <span class="text-text-secondary block max-w-[18rem] truncate opacity-80">
                       {{ column.formatter ? column.formatter(getValue(row, column.key)) : display(getValue(row, column.key)) }}
                     </span>
-                  </AppTooltip>
+                  </template>
                   <template v-else>
-                    {{ column.formatter ? column.formatter(getValue(row, column.key)) : display(getValue(row, column.key)) }}
+                    <span :class="column.key === 'id' ? 'font-mono text-xs opacity-60' : ''">
+                      {{ column.formatter ? column.formatter(getValue(row, column.key)) : display(getValue(row, column.key)) }}
+                    </span>
                   </template>
                 </slot>
               </td>
@@ -324,77 +288,65 @@
       </div>
     </div>
 
-    <!-- ── Footer / Pagination ─────────────────────────────────────────────────────────────────────────────── -->
+    <!-- ── Pagination (Sophisticated) ──────────────────────────────────────────────────────────────────────── -->
     <div
       v-if="showPagination"
-      class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+      class="bg-muted/20 border-border/40 flex flex-col gap-4 rounded-2xl border p-3 sm:flex-row sm:items-center sm:justify-between"
     >
-      <!-- Left: Selection Info + Page Size -->
-      <div class="flex flex-wrap items-center gap-3">
+      <div class="flex flex-wrap items-center gap-4">
+        <!-- Selected Counter -->
         <div
           v-if="selectable && selected.length > 0"
-          class="bg-primary/10 text-primary ring-primary/20 flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold ring-1"
+          class="bg-primary shadow-primary/20 text-white flex items-center gap-2 rounded-xl px-4 py-1.5 text-xs font-bold shadow-md"
         >
-          <AppIcon name="icon-[heroicons--check-circle]" :size="0.875" />
-          {{ selected.length }} Selected
+          <AppIcon name="icon-[heroicons--check-badge]" :size="1" />
+          {{ selected.length }} Items Selected
           <button
             type="button"
-            class="hover:text-primary-dark ms-1 underline transition-colors"
+            class="ms-2 border-l border-white/20 pl-2 hover:opacity-80"
             @click="emit('update:selected', [])"
           >
-            Clear
+            Deselect
           </button>
         </div>
 
-        <span class="text-text-secondary text-sm tabular-nums">
+        <div class="text-text-secondary flex items-center gap-1 text-[11px] font-bold tracking-wider uppercase opacity-60">
           Showing
-          <span class="text-text font-semibold">{{ paginationStart }}</span>
+          <span class="text-text">{{ paginationStart }}</span>
           to
-          <span class="text-text font-semibold">{{ paginationEnd }}</span>
+          <span class="text-text">{{ paginationEnd }}</span>
           of
-          <span class="text-text font-semibold">{{ paginationTotal }}</span>
-        </span>
+          <span class="text-text">{{ paginationTotal }}</span>
+        </div>
 
-        <!-- Page size selector -->
-        <div
-          v-if="serverPaginated && pageSizeOptions.length > 0"
-          ref="pageSizeRef"
-          class="relative"
-        >
+        <!-- Page Size (Modern Select) -->
+        <div v-if="serverPaginated && pageSizeOptions.length > 0" ref="pageSizeRef" class="relative">
           <button
             type="button"
-            class="border-border bg-surface text-text hover:bg-muted flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-bold transition-all"
+            class="bg-surface border-border/40 hover:border-primary/40 text-text hover:text-primary flex h-9 items-center gap-2 rounded-xl border px-3 text-[11px] font-bold transition-all shadow-xs"
             @click="showPageSizeMenu = !showPageSizeMenu"
           >
-            {{ pageSize }} per page
-            <AppIcon
-              name="icon-[heroicons--chevron-up-down]"
-              :size="0.75"
-              class="text-text-secondary"
-            />
+            {{ pageSize }} / Page
+            <AppIcon name="icon-[heroicons--chevron-up-down]" :size="0.75" class="opacity-50" />
           </button>
           <Transition
             enter-active-class="transition duration-100 ease-out"
-            enter-from-class="opacity-0 scale-95"
-            enter-to-class="opacity-100 scale-100"
+            enter-from-class="opacity-0 translate-y-1"
+            enter-to-class="opacity-100 translate-y-0"
             leave-active-class="transition duration-75 ease-in"
-            leave-from-class="opacity-100 scale-100"
-            leave-to-class="opacity-0 scale-95"
+            leave-from-class="opacity-100 translate-y-0"
+            leave-to-class="opacity-0 translate-y-1"
           >
             <div
               v-if="showPageSizeMenu"
-              class="border-border bg-surface absolute start-0 bottom-full z-50 mb-1.5 min-w-[6rem] origin-bottom-left rounded-xl border p-1 shadow-lg"
+              class="border-border/40 bg-surface absolute start-0 bottom-full z-[70] mb-2 min-w-[6rem] rounded-xl border p-1 shadow-xl"
             >
               <button
                 v-for="n in pageSizeOptions"
                 :key="n"
                 type="button"
-                class="flex w-full items-center justify-center rounded-lg px-3 py-1.5 text-sm transition-colors"
-                :class="
-                  n === pageSize
-                    ? 'bg-primary/10 text-primary font-bold'
-                    : 'text-text hover:bg-muted'
-                "
+                class="flex w-full items-center justify-center rounded-lg px-3 py-2 text-xs font-bold transition-colors"
+                :class="n === pageSize ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-muted'"
                 @click="selectPageSize(n)"
               >
                 {{ n }}
@@ -404,69 +356,36 @@
         </div>
       </div>
 
-      <!-- Right: Pagination Nav -->
-      <div class="flex items-center gap-1.5 self-end sm:self-auto">
+      <!-- Navigation Controls -->
+      <div class="flex items-center gap-2">
         <AppButton
-          icon="icon-[heroicons-outline--chevron-left]"
-          variant="outline"
+          icon="icon-[heroicons-outline--arrow-left]"
+          variant="ghost"
           size="sm"
           icon-only
           :disabled="!canGoPrev"
-          class="rounded-xl shadow-xs"
+          class="bg-surface! border-border/40! hover:bg-muted! rounded-xl shadow-xs"
           @click="goToPrev"
         />
 
-        <div class="flex items-center gap-1">
-          <template v-if="!serverPaginated">
-            <button
-              v-for="p in clientVisiblePages"
-              :key="p"
-              type="button"
-              class="flex size-8 items-center justify-center rounded-xl text-sm font-bold transition-all"
-              :class="
-                p === clientPage
-                  ? 'bg-primary shadow-primary/20 text-white shadow-md'
-                  : 'text-text-secondary hover:bg-muted hover:text-text'
-              "
-              @click="goToPage(p)"
-            >
-              {{ p }}
-            </button>
-          </template>
-          <div
-            v-else
-            class="bg-muted/50 border-border flex h-8 items-center gap-2 rounded-xl border px-3 text-sm font-bold tabular-nums shadow-xs"
-          >
-            <span class="text-text-secondary text-[10px] tracking-widest uppercase">Page</span>
-            <span class="text-primary">{{ props.pageNumber }}</span>
-            <span class="text-text-secondary">/</span>
-            <span class="text-text">{{ props.totalPages || 1 }}</span>
-          </div>
+        <div class="bg-surface border-border/40 flex h-9 items-center gap-2 rounded-xl border px-4 shadow-xs">
+          <span class="text-text-secondary text-[10px] font-bold tracking-widest uppercase opacity-50">Page</span>
+          <span class="text-primary font-bold">{{ props.pageNumber }}</span>
+          <span class="text-text-secondary opacity-30">/</span>
+          <span class="text-text font-bold">{{ props.totalPages || 1 }}</span>
         </div>
 
         <AppButton
-          icon="icon-[heroicons-outline--chevron-right]"
-          variant="outline"
+          icon="icon-[heroicons-outline--arrow-right]"
+          variant="ghost"
           size="sm"
           icon-only
           :disabled="!canGoNext"
-          class="rounded-xl shadow-xs"
+          class="bg-surface! border-border/40! hover:bg-muted! rounded-xl shadow-xs"
           @click="goToNext"
         />
       </div>
     </div>
-
-    <!-- Expansion Modal -->
-    <AppModal
-      :is-open="truncateModalOpen"
-      :title="truncateModalTitle"
-      max-width="sm"
-      @close="truncateModalOpen = false"
-    >
-      <p dir="auto" class="text-text p-4 text-sm leading-relaxed whitespace-pre-wrap">
-        {{ truncateModalContent }}
-      </p>
-    </AppModal>
   </div>
 </template>
 
@@ -1005,15 +924,6 @@ export interface TableColumn {
     width: 1rem;
     pointer-events: none;
     background: linear-gradient(to right, transparent, rgb(0 0 0 / 0.03));
-  }
-
-  .table-row-data {
-    position: relative;
-    z-index: 0;
-  }
-
-  .table-row-data:hover {
-    z-index: 12;
   }
 
   .table-compact td,
