@@ -18,7 +18,9 @@
         class="border-border bg-muted flex items-center gap-2 rounded-full border px-3 py-1"
       >
         <span class="icon-[mdi--account-circle] text-text-secondary text-base" />
-        <AppText variant="span" size="xs" weight="medium" color="text">{{ store.user.name }}</AppText>
+        <AppText variant="span" size="xs" weight="medium" color="text">
+          {{ store.user.name }}
+        </AppText>
         <AppText
           variant="span"
           size="0.625rem"
@@ -30,22 +32,26 @@
         </AppText>
       </div>
 
-      <!-- Theme toggle — kept raw: dual-icon CSS transition not supported by AppButton -->
-      <button
-        type="button"
-        :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-        class="theme-toggle border-border bg-muted text-text-secondary hover:bg-surface hover:text-text relative flex size-8 items-center justify-center rounded-lg border transition-colors duration-150"
-        @click="toggleTheme"
+      <!-- Theme toggle -->
+      <AppTooltip
+        :content="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+        placement="bottom"
       >
-        <span
-          class="icon-[mdi--weather-sunny] text-base transition-all duration-200"
-          :class="isDark ? 'scale-0 opacity-0' : 'scale-100 opacity-100'"
-        />
-        <span
-          class="icon-[mdi--weather-night] absolute text-base transition-all duration-200"
-          :class="isDark ? 'scale-100 opacity-100' : 'scale-0 opacity-0'"
-        />
-      </button>
+        <button
+          type="button"
+          class="theme-toggle border-border bg-muted text-text-secondary hover:bg-surface hover:text-text relative flex size-8 items-center justify-center rounded-lg border transition-colors duration-150"
+          @click="toggleTheme"
+        >
+          <span
+            class="icon-[mdi--weather-sunny] text-base transition-all duration-200"
+            :class="isDark ? 'scale-0 opacity-0' : 'scale-100 opacity-100'"
+          />
+          <span
+            class="icon-[mdi--weather-night] absolute text-base transition-all duration-200"
+            :class="isDark ? 'scale-100 opacity-100' : 'scale-0 opacity-0'"
+          />
+        </button>
+      </AppTooltip>
 
       <!-- Logout -->
       <AppButton
@@ -54,7 +60,8 @@
         variant="ghost"
         size="sm"
         icon="mdi--logout"
-        title="Sign out"
+        tooltip="Sign out"
+        tooltip-placement="bottom"
         class="hover:bg-error/10! hover:text-error!"
         @click="handleLogout"
       />
@@ -63,18 +70,19 @@
 </template>
 
 <script setup lang="ts">
-import { useTheme } from '../composables/useTheme';
-import { AuthStore } from '../stores/auth.store';
-import { useRouter } from 'vue-router';
-import AppText from './ui/AppText.vue';
-import AppButton from './ui/AppButton.vue';
+  import { useTheme } from '../composables/useTheme';
+  import { AuthStore } from '../stores/auth.store';
+  import { useRouter } from 'vue-router';
+  import AppText from './ui/AppText.vue';
+  import AppButton from './ui/AppButton.vue';
+  import AppTooltip from './ui/AppTooltip.vue';
 
-const { isDark, toggleTheme } = useTheme();
-const store = AuthStore();
-const router = useRouter();
+  const { isDark, toggleTheme } = useTheme();
+  const store = AuthStore();
+  const router = useRouter();
 
-const handleLogout = () => {
-  store.clearSession();
-  router.push({ name: 'login' });
-};
+  const handleLogout = () => {
+    store.clearSession();
+    router.push({ name: 'login' });
+  };
 </script>
