@@ -56,7 +56,6 @@
           </div>
           <div>
             <div class="text-text font-medium">{{ row.patient?.firstName }} {{ row.patient?.lastName }}</div>
-            <div class="text-text-secondary text-xs">{{ row.patient?.email }}</div>
           </div>
         </div>
       </template>
@@ -100,7 +99,7 @@
             icon-only
             tooltip="Check In"
             class="text-primary!"
-            @click="handleUpdateStatus(row, AppointmentStatus.CHECK_IN)"
+            @click="handleUpdateStatus(row, AppointmentStatus.CHECKED_IN)"
           />
            <AppButton
             v-if="row.status === AppointmentStatus.CHECKED_IN"
@@ -146,15 +145,18 @@
 
   const columns: TableColumn[] = [
     { key: 'patient', label: 'Patient', sortable: true },
-    { key: 'appointmentDate', label: 'Date & Time', sortable: true, formatter: (v) => formatDate(v, true) },
+    { key: 'dateTime', label: 'Date & Time', sortable: true, formatter: (v) => formatDate(v, true) },
     { key: 'type', label: 'Type' },
     { key: 'status', label: 'Status' },
+    { key: 'reason', label: 'Reason', defaultHidden: false },
+    { key: 'notes', label: 'Notes', defaultHidden: true },
+    { key: 'createdAt', label: 'Created At', defaultHidden: true, formatter: (v) => formatDate(v) },
     { key: 'actions', label: 'Actions', class: 'text-end' },
   ];
 
   const todayAppointmentsCount = computed(() => {
     const today = new Date().toISOString().split('T')[0];
-    return appointmentStore.doctorAppointments.filter(a => a.appointmentDate.startsWith(today)).length;
+    return appointmentStore.doctorAppointments.filter(a => a.dateTime.startsWith(today)).length;
   });
 
   const pendingAppointmentsCount = computed(() => {
