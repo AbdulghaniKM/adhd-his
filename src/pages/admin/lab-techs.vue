@@ -68,7 +68,7 @@
               size="sm"
               icon="icon-[heroicons-outline--archive-box]"
               icon-only
-              class="text-warning hover:text-warning"
+              class="text-warning! hover:bg-warning/10!"
               tooltip="Archive"
               @click="confirmDelete(row, false)"
             />
@@ -79,7 +79,7 @@
               size="sm"
               icon="icon-[heroicons-outline--arrow-path]"
               icon-only
-              class="text-success hover:text-success"
+              class="text-success! hover:bg-success/10!"
               tooltip="Restore"
               @click="handleRestore(row)"
             />
@@ -88,7 +88,7 @@
               size="sm"
               icon="icon-[heroicons-outline--trash]"
               icon-only
-              class="text-error hover:text-error"
+              class="text-error! hover:bg-error/10!"
               tooltip="Delete Forever"
               @click="confirmDelete(row, true)"
             />
