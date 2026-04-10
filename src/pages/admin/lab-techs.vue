@@ -66,7 +66,7 @@
             <AppButton
               variant="ghost"
               size="sm"
-              icon="icon-[heroicons-outline--trash]"
+              icon="icon-[heroicons-outline--archive-box]"
               icon-only
               class="text-warning hover:text-warning"
               tooltip="Archive"

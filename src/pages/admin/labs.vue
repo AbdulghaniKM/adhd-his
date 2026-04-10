@@ -2,8 +2,8 @@
   <div class="space-y-6 p-6">
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-text">Laboratory Facilities</h1>
-        <p class="text-sm text-text-secondary">Manage hospital lab units and contact details</p>
+        <h1 class="text-text text-2xl font-bold">Laboratory Facilities</h1>
+        <p class="text-text-secondary text-sm">Manage hospital lab units and contact details</p>
       </div>
       <div class="flex items-center gap-2">
         <AppButton
@@ -42,7 +42,7 @@
             <AppButton
               variant="ghost"
               size="sm"
-              icon="icon-[heroicons-outline--trash]"
+              icon="icon-[heroicons-outline--archive-box]"
               icon-only
               class="text-warning hover:text-warning"
               tooltip="Archive"
@@ -104,107 +104,112 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useLabStore } from '../../stores/lab.store';
-import AppTable from '../../components/ui/AppTable.vue';
-import AppButton from '../../components/ui/AppButton.vue';
-import AppModal from '../../components/ui/AppModal.vue';
-import AppForm from '../../components/ui/Fields/AppForm.vue';
-import ConfirmDangerModal from '../../components/ui/ConfirmDangerModal.vue';
-import { useToast } from '../../composables/useToast';
-import type { TableColumn } from '../../components/ui/AppTable.vue';
-import type { FormFieldRow } from '../../types/form';
+  import { ref, onMounted } from 'vue';
+  import { useLabStore } from '../../stores/lab.store';
+  import AppTable from '../../components/ui/AppTable.vue';
+  import AppButton from '../../components/ui/AppButton.vue';
+  import AppModal from '../../components/ui/AppModal.vue';
+  import AppForm from '../../components/ui/Fields/AppForm.vue';
+  import ConfirmDangerModal from '../../components/ui/ConfirmDangerModal.vue';
+  import { useToast } from '../../composables/useToast';
+  import type { TableColumn } from '../../components/ui/AppTable.vue';
+  import type { FormFieldRow } from '../../types/form';
 
-const labStore = useLabStore();
-const { success, error } = useToast();
+  const labStore = useLabStore();
+  const { success, error } = useToast();
 
-const isHardDelete = ref(false);
+  const isHardDelete = ref(false);
 
-const columns: TableColumn[] = [
-  { key: 'name', label: 'Laboratory Name', sortable: true },
-  { key: 'location', label: 'Location' },
-  { key: 'contactPhone', label: 'Contact Phone' },
-  { key: 'actions', label: 'Actions', class: 'text-end' },
-];
+  const columns: TableColumn[] = [
+    { key: 'name', label: 'Laboratory Name', sortable: true },
+    { key: 'location', label: 'Location' },
+    { key: 'contactPhone', label: 'Contact Phone' },
+    { key: 'actions', label: 'Actions', class: 'text-end' },
+  ];
 
-const formFields: FormFieldRow[] = [
-  [{ key: 'Name', label: 'Lab Name', type: 'text', placeholder: 'e.g. Hematology Lab' }],
-  [
-    { key: 'Location', label: 'Location/Building', type: 'text', placeholder: 'e.g. Block B, 2nd Floor' },
-    { key: 'ContactPhone', label: 'Contact Extension', type: 'phone' },
-  ],
-];
+  const formFields: FormFieldRow[] = [
+    [{ key: 'Name', label: 'Lab Name', type: 'text', placeholder: 'e.g. Hematology Lab' }],
+    [
+      {
+        key: 'Location',
+        label: 'Location/Building',
+        type: 'text',
+        placeholder: 'e.g. Block B, 2nd Floor',
+      },
+      { key: 'ContactPhone', label: 'Contact Extension', type: 'phone' },
+    ],
+  ];
 
-const isModalOpen = ref(false);
-const editingLab = ref<any>(null);
-const formData = ref<any>({});
+  const isModalOpen = ref(false);
+  const editingLab = ref<any>(null);
+  const formData = ref<any>({});
 
-const isDeleteModalOpen = ref(false);
-const labToDelete = ref<any>(null);
+  const isDeleteModalOpen = ref(false);
+  const labToDelete = ref<any>(null);
 
-onMounted(() => {
-  labStore.fetchLabs();
-});
+  onMounted(() => {
+    labStore.fetchLabs();
+  });
 
-const handlePageChange = ({ pageNumber, pageSize }: { pageNumber: number; pageSize: number }) => {
-  labStore.fetchLabs({ PageNumber: pageNumber, PageSize: pageSize });
-};
+  const handlePageChange = ({ pageNumber, pageSize }: { pageNumber: number; pageSize: number }) => {
+    labStore.fetchLabs({ PageNumber: pageNumber, PageSize: pageSize });
+  };
 
-const handleSearch = (query: string) => {
-  labStore.fetchLabs({ Name: query, PageNumber: 1 });
-};
+  const handleSearch = (query: string) => {
+    labStore.fetchLabs({ Name: query, PageNumber: 1 });
+  };
 
-const openCreateModal = () => {
-  editingLab.value = null;
-  formData.value = { Name: '', Location: '', ContactPhone: '' };
-  isModalOpen.value = true;
-};
+  const openCreateModal = () => {
+    editingLab.value = null;
+    formData.value = { Name: '', Location: '', ContactPhone: '' };
+    isModalOpen.value = true;
+  };
 
-const openEditModal = (lab: any) => {
-  editingLab.value = lab;
-  formData.value = { Name: lab.name, Location: lab.location, ContactPhone: lab.contactPhone };
-  isModalOpen.value = true;
-};
+  const openEditModal = (lab: any) => {
+    editingLab.value = lab;
+    formData.value = { Name: lab.name, Location: lab.location, ContactPhone: lab.contactPhone };
+    isModalOpen.value = true;
+  };
 
-const handleSubmit = async (data: any) => {
-  let res;
-  if (editingLab.value) {
-    res = await labStore.updateLab(editingLab.value.id, data);
-  } else {
-    res = await labStore.createLab(data);
-  }
+  const handleSubmit = async (data: any) => {
+    let res;
+    if (editingLab.value) {
+      res = await labStore.updateLab(editingLab.value.id, data);
+    } else {
+      res = await labStore.createLab(data);
+    }
 
-  if (res) {
-    success(editingLab.value ? 'Lab updated' : 'Lab created');
-    isModalOpen.value = false;
-  } else {
-    error(labStore.error || 'Operation failed');
-  }
-};
+    if (res) {
+      success(editingLab.value ? 'Lab updated' : 'Lab created');
+      isModalOpen.value = false;
+    } else {
+      error(labStore.error || 'Operation failed');
+    }
+  };
 
-const confirmDelete = (lab: any, isHard = false) => {
-  labToDelete.value = lab;
-  isHardDelete.value = isHard;
-  isDeleteModalOpen.value = true;
-};
+  const confirmDelete = (lab: any, isHard = false) => {
+    labToDelete.value = lab;
+    isHardDelete.value = isHard;
+    isDeleteModalOpen.value = true;
+  };
 
-const handleDelete = async () => {
-  if (!labToDelete.value) return;
-  const res = await labStore.deleteLab(labToDelete.value.id, isHardDelete.value);
-  if (res) {
-    success(isHardDelete.value ? 'Lab deleted forever' : 'Lab archived');
-    isDeleteModalOpen.value = false;
-  } else {
-    error(labStore.error || 'Delete failed');
-  }
-};
+  const handleDelete = async () => {
+    if (!labToDelete.value) return;
+    const res = await labStore.deleteLab(labToDelete.value.id, isHardDelete.value);
+    if (res) {
+      success(isHardDelete.value ? 'Lab deleted forever' : 'Lab archived');
+      isDeleteModalOpen.value = false;
+    } else {
+      error(labStore.error || 'Delete failed');
+    }
+  };
 
-const handleRestore = async (lab: any) => {
-  const res = await labStore.restoreLab(lab.id);
-  if (res) {
-    success('Lab restored');
-  } else {
-    error(labStore.error || 'Restore failed');
-  }
-};
+  const handleRestore = async (lab: any) => {
+    const res = await labStore.restoreLab(lab.id);
+    if (res) {
+      success('Lab restored');
+    } else {
+      error(labStore.error || 'Restore failed');
+    }
+  };
 </script>
