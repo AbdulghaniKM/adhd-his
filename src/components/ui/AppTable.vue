@@ -310,11 +310,11 @@
                     <span
                       class="text-text-secondary block max-w-[16rem] truncate text-start text-sm"
                     >
-                      {{ display(getValue(row, column.key)) }}
+                      {{ column.formatter ? column.formatter(getValue(row, column.key)) : display(getValue(row, column.key)) }}
                     </span>
                   </AppTooltip>
                   <template v-else>
-                    {{ display(getValue(row, column.key)) }}
+                    {{ column.formatter ? column.formatter(getValue(row, column.key)) : display(getValue(row, column.key)) }}
                   </template>
                 </slot>
               </td>
@@ -482,14 +482,15 @@
   import AppModal from './AppModal.vue';
   import { display } from '../../utils/display';
 export interface TableColumn {
-  key: string
-  label: string
-  sortable?: boolean
-  hideable?: boolean
-  defaultHidden?: boolean
-  class?: string
-  truncate?: boolean
-  exportFormatter?: (row: any) => any
+  key: string;
+  label: string;
+  sortable?: boolean;
+  hideable?: boolean;
+  defaultHidden?: boolean;
+  class?: string;
+  truncate?: boolean;
+  formatter?: (value: any) => string;
+  exportFormatter?: (row: any) => any;
 }
 
   interface Props {
@@ -631,13 +632,15 @@ export interface TableColumn {
   const columnVisibility = ref<Record<string, boolean>>(loadSavedVisibility());
   const columnSavedHint = ref(false);
 
-  const toggleableColumns = computed(() => props.columns.filter((c) => c.hideable !== false));
+  const toggleableColumns = computed(() =>
+    props.columns.filter((c) => c.hideable !== false && c.key !== 'actions'),
+  );
 
   const visibleColumnsSet = computed(() => {
     const saved = columnVisibility.value;
     const set = new Set<string>();
     for (const col of props.columns) {
-      if (col.hideable === false) {
+      if (col.hideable === false || col.key === 'actions') {
         set.add(col.key);
       } else if (saved[col.key] !== undefined) {
         if (saved[col.key]) set.add(col.key);
@@ -763,7 +766,9 @@ export interface TableColumn {
     // ── Data rows ─────────────────────────────────────────────────────────
     itemsToExport.forEach((row, rowIdx) => {
       const values = exportCols.map((col) => {
-        const val = col.exportFormatter ? col.exportFormatter(row) : getValue(row, col.key);
+        if (col.exportFormatter) return display(col.exportFormatter(row), '');
+        const val = getValue(row, col.key);
+        if (col.formatter) return col.formatter(val);
         return display(val, '');
       });
 

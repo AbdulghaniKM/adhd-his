@@ -51,6 +51,14 @@
         </div>
       </template>
 
+      <template #cell-gender="{ value }">
+        {{ mapGender(value) }}
+      </template>
+
+      <template #cell-bloodType="{ value }">
+        {{ mapBloodType(value) }}
+      </template>
+
       <template #cell-isActive="{ value }">
         <span
           class="rounded-full px-2 py-1 text-xs font-medium"
@@ -145,7 +153,8 @@
   import AppForm from '../../components/ui/Fields/AppForm.vue';
   import ConfirmDangerModal from '../../components/ui/ConfirmDangerModal.vue';
   import { useToast } from '../../composables/useToast';
-  import { mapEnum } from '../../utils/enum-mapper';
+  import { mapGender, mapBloodType } from '../../utils/enum-mapper';
+  import { formatDate } from '../../utils/format-date';
   import { Gender, BloodType } from '../../types/enums.types';
   import type { TableColumn } from '../../components/ui/AppTable.vue';
   import type { FormFieldRow } from '../../types/form';
@@ -167,10 +176,12 @@
     { key: 'phone', label: 'Phone', defaultHidden: true },
     { key: 'medicalLicenseNumber', label: 'License' },
     { key: 'department.title', label: 'Department', defaultHidden: true },
+    { key: 'gender', label: 'Gender', defaultHidden: true, exportFormatter: (row) => mapGender(row.gender) },
+    { key: 'bloodType', label: 'Blood Type', defaultHidden: true, exportFormatter: (row) => mapBloodType(row.bloodType) },
     { key: 'yearsOfExperience', label: 'Experience', defaultHidden: true },
     { key: 'consultationCharge', label: 'Charge', defaultHidden: true },
     { key: 'location', label: 'Location', defaultHidden: true },
-    { key: 'birthDate', label: 'Birth Date', defaultHidden: true },
+    { key: 'birthDate', label: 'Birth Date', defaultHidden: true, formatter: formatDate },
     { key: 'isActive', label: 'Status' },
     { key: 'actions', label: 'Actions', class: 'text-end' },
   ];

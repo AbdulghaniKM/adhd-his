@@ -32,13 +32,8 @@
         </span>
       </template>
 
-      <template #cell-dateTime="{ value }">
-        <div class="text-xs">
-          <div class="text-text font-medium">{{ new Date(value).toLocaleDateString() }}</div>
-          <div class="text-text-secondary">
-            {{ new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}
-          </div>
-        </div>
+      <template #cell-type="{ value }">
+        {{ mapAppointmentType(value) }}
       </template>
 
       <template #cell-status="{ value }">
@@ -46,7 +41,7 @@
           class="rounded-full px-2 py-1 text-xs font-medium"
           :class="statusClasses[value] || 'bg-muted text-text-secondary'"
         >
-          {{ mapEnum(value) }}
+          {{ mapAppointmentStatus(value) }}
         </span>
       </template>
 
@@ -120,7 +115,7 @@
               "
               @click="selectedStatus = status"
             >
-              <div class="text-text text-sm font-bold">{{ mapEnum(status) }}</div>
+              <div class="text-text text-sm font-bold">{{ mapAppointmentStatus(status) }}</div>
             </button>
           </div>
         </div>
@@ -156,7 +151,8 @@
   import AppModal from '../../components/ui/AppModal.vue';
   import ConfirmDangerModal from '../../components/ui/ConfirmDangerModal.vue';
   import { useToast } from '../../composables/useToast';
-  import { mapEnum } from '../../utils/enum-mapper';
+  import { mapAppointmentStatus, mapAppointmentType } from '../../utils/enum-mapper';
+  import { formatDateTime } from '../../utils/format-date';
   import { AppointmentStatus } from '../../types/enums.types';
   import type { TableColumn } from '../../components/ui/AppTable.vue';
 
@@ -166,7 +162,7 @@
   const isHardDelete = ref(false);
 
   const columns: TableColumn[] = [
-    { key: 'dateTime', label: 'Date & Time', sortable: true },
+    { key: 'dateTime', label: 'Date & Time', sortable: true, formatter: formatDateTime },
     { key: 'patient', label: 'Patient' },
     { key: 'doctor', label: 'Doctor' },
     { key: 'type', label: 'Type' },

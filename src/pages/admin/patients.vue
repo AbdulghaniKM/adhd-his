@@ -44,12 +44,20 @@
         </div>
       </template>
 
+      <template #cell-gender="{ value }">
+        {{ mapGender(value) }}
+      </template>
+
+      <template #cell-bloodType="{ value }">
+        {{ mapBloodType(value) }}
+      </template>
+
       <template #cell-status="{ value }">
         <span
           class="rounded-full px-2 py-1 text-xs font-medium"
           :class="statusClasses[value] || 'bg-muted text-text-secondary'"
         >
-          {{ mapEnum(value) }}
+          {{ mapPatientStatus(value) }}
         </span>
       </template>
 
@@ -138,7 +146,8 @@ import AppModal from '../../components/ui/AppModal.vue';
 import AppForm from '../../components/ui/Fields/AppForm.vue';
 import ConfirmDangerModal from '../../components/ui/ConfirmDangerModal.vue';
 import { useToast } from '../../composables/useToast';
-import { mapEnum } from '../../utils/enum-mapper';
+import { mapPatientStatus, mapGender, mapBloodType } from '../../utils/enum-mapper';
+import { formatDate, formatDateTime } from '../../utils/format-date';
 import { Gender, BloodType, PatientStatus } from '../../types/enums.types';
 import type { TableColumn } from '../../components/ui/AppTable.vue';
 import type { FormFieldRow } from '../../types/form';
@@ -156,12 +165,12 @@ const columns: TableColumn[] = [
   },
   { key: 'email', label: 'Email', sortable: true },
   { key: 'phone', label: 'Phone' },
-  { key: 'birthDate', label: 'Birth Date', defaultHidden: true },
-  { key: 'gender', label: 'Gender', defaultHidden: true },
-  { key: 'bloodType', label: 'Blood Type', defaultHidden: true },
-  { key: 'status', label: 'Status' },
+  { key: 'birthDate', label: 'Birth Date', defaultHidden: true, formatter: formatDate },
+  { key: 'gender', label: 'Gender', defaultHidden: true, exportFormatter: (row) => mapGender(row.gender) },
+  { key: 'bloodType', label: 'Blood Type', defaultHidden: true, exportFormatter: (row) => mapBloodType(row.bloodType) },
+  { key: 'status', label: 'Status', exportFormatter: (row) => mapPatientStatus(row.status) },
   { key: 'primaryDoctor.firstName', label: 'Primary Doctor', defaultHidden: true },
-  { key: 'createdAt', label: 'Registered', defaultHidden: true },
+  { key: 'createdAt', label: 'Registered', defaultHidden: true, formatter: formatDateTime },
   { key: 'actions', label: 'Actions', class: 'text-end' },
 ];
 
