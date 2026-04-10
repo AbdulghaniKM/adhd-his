@@ -5,11 +5,13 @@
         <h1 class="text-2xl font-bold text-text">System Administrators</h1>
         <p class="text-sm text-text-secondary">Manage administrative access to the platform</p>
       </div>
-      <AppButton
-        label="Add Administrator"
-        icon="icon-[heroicons-outline--plus]"
-        @click="openCreateModal"
-      />
+      <div class="flex items-center gap-2">
+        <AppButton
+          label="Add Administrator"
+          icon="icon-[heroicons-outline--plus]"
+          @click="openCreateModal"
+        />
+      </div>
     </div>
 
     <AppTable
@@ -53,23 +55,45 @@
 
       <template #cell-actions="{ row }">
         <div class="flex items-center gap-2">
-          <AppButton
-            variant="ghost"
-            size="sm"
-            icon="icon-[heroicons-outline--pencil-square]"
-            icon-only
-            tooltip="Edit"
-            @click="openEditModal(row)"
-          />
-          <AppButton
-            variant="ghost"
-            size="sm"
-            icon="icon-[heroicons-outline--trash]"
-            icon-only
-            class="text-error hover:text-error"
-            tooltip="Delete"
-            @click="confirmDelete(row)"
-          />
+          <template v-if="!row.isDeleted">
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--pencil-square]"
+              icon-only
+              tooltip="Edit"
+              @click="openEditModal(row)"
+            />
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--trash]"
+              icon-only
+              class="text-warning hover:text-warning"
+              tooltip="Archive"
+              @click="confirmDelete(row, false)"
+            />
+          </template>
+          <template v-else>
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--arrow-path]"
+              icon-only
+              class="text-success hover:text-success"
+              tooltip="Restore"
+              @click="handleRestore(row)"
+            />
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--trash]"
+              icon-only
+              class="text-error hover:text-error"
+              tooltip="Delete Forever"
+              @click="confirmDelete(row, true)"
+            />
+          </template>
         </div>
       </template>
     </AppTable>
@@ -92,8 +116,12 @@
     <!-- Delete Confirmation -->
     <ConfirmDangerModal
       :is-open="isDeleteModalOpen"
-      title="Delete Administrator"
-      :message="`Are you sure you want to delete ${adminToDelete?.firstName}? This action cannot be undone.`"
+      :title="isHardDelete ? 'Delete Forever' : 'Archive Administrator'"
+      :message="
+        isHardDelete
+          ? `Are you sure you want to PERMANENTLY delete ${adminToDelete?.firstName}? This action cannot be undone.`
+          : `Are you sure you want to archive ${adminToDelete?.firstName}? You can restore it later.`
+      "
       @close="isDeleteModalOpen = false"
       @confirm="handleDelete"
     />
@@ -116,6 +144,7 @@ const adminStore = useAdminStore();
 const { success, error } = useToast();
 
 const selectedAdmins = ref<any[]>([]);
+const isHardDelete = ref(false);
 
 const columns: TableColumn[] = [
   { key: 'name', label: 'Name', sortable: true },
@@ -191,20 +220,30 @@ const handleSubmit = async (data: any) => {
   }
 };
 
-const confirmDelete = (admin: any) => {
+const confirmDelete = (admin: any, isHard = false) => {
   adminToDelete.value = admin;
+  isHardDelete.value = isHard;
   isDeleteModalOpen.value = true;
 };
 
 const handleDelete = async () => {
   if (!adminToDelete.value) return;
 
-  const res = await adminStore.deleteAdmin(adminToDelete.value.id);
+  const res = await adminStore.deleteAdmin(adminToDelete.value.id, isHardDelete.value);
   if (res) {
-    success('Admin deleted');
+    success(isHardDelete.value ? 'Admin deleted forever' : 'Admin archived');
     isDeleteModalOpen.value = false;
   } else {
     error(adminStore.error || 'Delete failed');
+  }
+};
+
+const handleRestore = async (admin: any) => {
+  const res = await adminStore.restoreAdmin(admin.id);
+  if (res) {
+    success('Admin restored');
+  } else {
+    error(adminStore.error || 'Restore failed');
   }
 };
 </script>

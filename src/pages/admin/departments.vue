@@ -5,11 +5,13 @@
         <h1 class="text-2xl font-bold text-text">Departments</h1>
         <p class="text-sm text-text-secondary">Manage hospital clinical departments</p>
       </div>
-      <AppButton
-        label="Add Department"
-        icon="icon-[heroicons-outline--plus]"
-        @click="openCreateModal"
-      />
+      <div class="flex items-center gap-2">
+        <AppButton
+          label="Add Department"
+          icon="icon-[heroicons-outline--plus]"
+          @click="openCreateModal"
+        />
+      </div>
     </div>
 
     <AppTable
@@ -18,27 +20,55 @@
       :loading="departmentStore.loading"
       searchable
       search-placeholder="Search departments..."
+      server-paginated
+      :page-number="departmentStore.pageNumber"
+      :page-size="departmentStore.pageSize"
+      :total-count="departmentStore.totalCount"
+      :total-pages="departmentStore.totalPages"
+      @page-change="handlePageChange"
       @search="handleSearch"
     >
       <template #cell-actions="{ row }">
         <div class="flex items-center gap-2">
-          <AppButton
-            variant="ghost"
-            size="sm"
-            icon="icon-[heroicons-outline--pencil-square]"
-            icon-only
-            tooltip="Edit"
-            @click="openEditModal(row)"
-          />
-          <AppButton
-            variant="ghost"
-            size="sm"
-            icon="icon-[heroicons-outline--trash]"
-            icon-only
-            class="text-error hover:text-error"
-            tooltip="Delete"
-            @click="confirmDelete(row)"
-          />
+          <template v-if="!row.isDeleted">
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--pencil-square]"
+              icon-only
+              tooltip="Edit"
+              @click="openEditModal(row)"
+            />
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--trash]"
+              icon-only
+              class="text-warning hover:text-warning"
+              tooltip="Archive"
+              @click="confirmDelete(row, false)"
+            />
+          </template>
+          <template v-else>
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--arrow-path]"
+              icon-only
+              class="text-success hover:text-success"
+              tooltip="Restore"
+              @click="handleRestore(row)"
+            />
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--trash]"
+              icon-only
+              class="text-error hover:text-error"
+              tooltip="Delete Forever"
+              @click="confirmDelete(row, true)"
+            />
+          </template>
         </div>
       </template>
     </AppTable>
@@ -61,8 +91,12 @@
     <!-- Delete Confirmation -->
     <ConfirmDangerModal
       :is-open="isDeleteModalOpen"
-      title="Remove Department"
-      :message="`Are you sure you want to remove the ${departmentToDelete?.title} department?`"
+      :title="isHardDelete ? 'Delete Forever' : 'Archive Department'"
+      :message="
+        isHardDelete
+          ? `Are you sure you want to PERMANENTLY delete the ${departmentToDelete?.title} department? This action cannot be undone.`
+          : `Are you sure you want to archive the ${departmentToDelete?.title} department? You can restore it later.`
+      "
       @close="isDeleteModalOpen = false"
       @confirm="handleDelete"
     />
@@ -83,6 +117,8 @@ import type { FormFieldRow } from '../../types/form';
 
 const departmentStore = useDepartmentStore();
 const { success, error } = useToast();
+
+const isHardDelete = ref(false);
 
 const columns: TableColumn[] = [
   { key: 'title', label: 'Department Name', sortable: true },
@@ -105,8 +141,12 @@ onMounted(() => {
   departmentStore.fetchDepartments();
 });
 
+const handlePageChange = ({ pageNumber, pageSize }: { pageNumber: number; pageSize: number }) => {
+  departmentStore.fetchDepartments({ PageNumber: pageNumber, PageSize: pageSize });
+};
+
 const handleSearch = (query: string) => {
-  departmentStore.fetchDepartments({ Title: query });
+  departmentStore.fetchDepartments({ Title: query, PageNumber: 1 });
 };
 
 const openCreateModal = () => {
@@ -137,19 +177,29 @@ const handleSubmit = async (data: any) => {
   }
 };
 
-const confirmDelete = (dept: any) => {
+const confirmDelete = (dept: any, isHard = false) => {
   departmentToDelete.value = dept;
+  isHardDelete.value = isHard;
   isDeleteModalOpen.value = true;
 };
 
 const handleDelete = async () => {
   if (!departmentToDelete.value) return;
-  const res = await departmentStore.deleteDepartment(departmentToDelete.value.id);
+  const res = await departmentStore.deleteDepartment(departmentToDelete.value.id, isHardDelete.value);
   if (res) {
-    success('Department removed');
+    success(isHardDelete.value ? 'Department deleted forever' : 'Department archived');
     isDeleteModalOpen.value = false;
   } else {
     error(departmentStore.error || 'Delete failed');
+  }
+};
+
+const handleRestore = async (dept: any) => {
+  const res = await departmentStore.restoreDepartment(dept.id);
+  if (res) {
+    success('Department restored');
+  } else {
+    error(departmentStore.error || 'Restore failed');
   }
 };
 </script>

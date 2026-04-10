@@ -19,6 +19,8 @@
       :loading="patientStore.loading"
       searchable
       selectable
+      exportable
+      export-file-name="patients-list"
       show-column-toggle
       columns-visibility-key="patient-list"
       search-placeholder="Search patients..."
@@ -53,23 +55,45 @@
 
       <template #cell-actions="{ row }">
         <div class="flex items-center gap-2">
-          <AppButton
-            variant="ghost"
-            size="sm"
-            icon="icon-[heroicons-outline--pencil-square]"
-            icon-only
-            tooltip="Edit"
-            @click="openEditModal(row)"
-          />
-          <AppButton
-            variant="ghost"
-            size="sm"
-            icon="icon-[heroicons-outline--trash]"
-            icon-only
-            class="text-error hover:text-error"
-            tooltip="Delete"
-            @click="confirmDelete(row)"
-          />
+          <template v-if="!row.isDeleted">
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--pencil-square]"
+              icon-only
+              tooltip="Edit"
+              @click="openEditModal(row)"
+            />
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--trash]"
+              icon-only
+              class="text-warning hover:text-warning"
+              tooltip="Archive"
+              @click="confirmDelete(row, false)"
+            />
+          </template>
+          <template v-else>
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--arrow-path]"
+              icon-only
+              class="text-success hover:text-success"
+              tooltip="Restore"
+              @click="handleRestore(row)"
+            />
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--trash]"
+              icon-only
+              class="text-error hover:text-error"
+              tooltip="Delete Forever"
+              @click="confirmDelete(row, true)"
+            />
+          </template>
         </div>
       </template>
     </AppTable>
@@ -92,8 +116,12 @@
     <!-- Delete Confirmation -->
     <ConfirmDangerModal
       :is-open="isDeleteModalOpen"
-      title="Delete Patient Record"
-      :message="`Are you sure you want to delete ${patientToDelete?.firstName}'s record? This cannot be undone.`"
+      :title="isHardDelete ? 'Delete Forever' : 'Archive Patient'"
+      :message="
+        isHardDelete
+          ? `Are you sure you want to PERMANENTLY delete ${patientToDelete?.firstName}'s record? This cannot be undone.`
+          : `Are you sure you want to archive ${patientToDelete?.firstName}'s record? You can restore it later.`
+      "
       @close="isDeleteModalOpen = false"
       @confirm="handleDelete"
     />
@@ -120,7 +148,12 @@ const doctorStore = useDoctorStore();
 const { success, error } = useToast();
 
 const columns: TableColumn[] = [
-  { key: 'name', label: 'Patient', sortable: true },
+  { 
+    key: 'name', 
+    label: 'Patient', 
+    sortable: true,
+    exportFormatter: (row) => `${row.firstName} ${row.lastName}`
+  },
   { key: 'email', label: 'Email', sortable: true },
   { key: 'phone', label: 'Phone' },
   { key: 'birthDate', label: 'Birth Date', defaultHidden: true },
@@ -133,6 +166,7 @@ const columns: TableColumn[] = [
 ];
 
 const selectedPatients = ref<any[]>([]);
+const isHardDelete = ref(false);
 
 const statusClasses: Record<number, string> = {
   [PatientStatus.IN_PATIENT]: 'bg-amber-500/10 text-amber-500',
@@ -234,19 +268,29 @@ const handleSubmit = async (data: any) => {
   }
 };
 
-const confirmDelete = (patient: any) => {
+const confirmDelete = (patient: any, isHard = false) => {
   patientToDelete.value = patient;
+  isHardDelete.value = isHard;
   isDeleteModalOpen.value = true;
 };
 
 const handleDelete = async () => {
   if (!patientToDelete.value) return;
-  const res = await patientStore.deletePatient(patientToDelete.value.id);
+  const res = await patientStore.deletePatient(patientToDelete.value.id, isHardDelete.value);
   if (res) {
-    success('Patient record removed');
+    success(isHardDelete.value ? 'Patient record permanently deleted' : 'Patient record archived');
     isDeleteModalOpen.value = false;
   } else {
     error(patientStore.error || 'Delete failed');
+  }
+};
+
+const handleRestore = async (patient: any) => {
+  const res = await patientStore.restorePatient(patient.id);
+  if (res) {
+    success('Patient record restored');
+  } else {
+    error(patientStore.error || 'Restore failed');
   }
 };
 </script>

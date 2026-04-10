@@ -11,12 +11,16 @@ export const useLabStore = defineStore('lab', () => {
   const pageSize = ref(10);
   const loading = ref(false);
   const error = ref<string | null>(null);
+  const lastFetchParams = ref<any>({});
 
   const fetchLabs = async (params?: any) => {
+    if (params) {
+      lastFetchParams.value = { ...lastFetchParams.value, ...params };
+    }
     loading.value = true;
     error.value = null;
     try {
-      const response = await labService.getAll(params);
+      const response = await labService.getAll(lastFetchParams.value);
       if (response.isSuccess) {
         labs.value = response.data.items;
         totalCount.value = response.data.totalCount;
@@ -36,7 +40,7 @@ export const useLabStore = defineStore('lab', () => {
     try {
       const response = await labService.create(data);
       if (response.isSuccess) {
-        await fetchLabs({ PageNumber: pageNumber.value, PageSize: pageSize.value });
+        await fetchLabs(lastFetchParams.value);
         return true;
       }
       return false;
@@ -53,7 +57,7 @@ export const useLabStore = defineStore('lab', () => {
     try {
       const response = await labService.update(id, data);
       if (response.isSuccess) {
-        await fetchLabs({ PageNumber: pageNumber.value, PageSize: pageSize.value });
+        await fetchLabs(lastFetchParams.value);
         return true;
       }
       return false;
@@ -72,12 +76,29 @@ export const useLabStore = defineStore('lab', () => {
         ? await labService.deletePermanent(id)
         : await labService.softDelete(id);
       if (response.isSuccess) {
-        await fetchLabs({ PageNumber: pageNumber.value, PageSize: pageSize.value });
+        await fetchLabs(lastFetchParams.value);
         return true;
       }
       return false;
     } catch (err: any) {
       error.value = err.message || 'Failed to delete lab';
+      return false;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const restoreLab = async (id: string) => {
+    loading.value = true;
+    try {
+      const response = await labService.restore(id);
+      if (response.isSuccess) {
+        await fetchLabs(lastFetchParams.value);
+        return true;
+      }
+      return false;
+    } catch (err: any) {
+      error.value = err.message || 'Failed to restore lab';
       return false;
     } finally {
       loading.value = false;
@@ -96,5 +117,6 @@ export const useLabStore = defineStore('lab', () => {
     createLab,
     updateLab,
     deleteLab,
+    restoreLab,
   };
 });

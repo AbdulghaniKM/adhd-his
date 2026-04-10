@@ -11,12 +11,16 @@ export const useAppointmentStore = defineStore('appointment', () => {
   const pageSize = ref(10);
   const loading = ref(false);
   const error = ref<string | null>(null);
+  const lastFetchParams = ref<any>({});
 
   const fetchAppointments = async (params?: any) => {
+    if (params) {
+      lastFetchParams.value = { ...lastFetchParams.value, ...params };
+    }
     loading.value = true;
     error.value = null;
     try {
-      const response = await appointmentService.getAll(params);
+      const response = await appointmentService.getAll(lastFetchParams.value);
       if (response.isSuccess) {
         appointments.value = response.data.items;
         totalCount.value = response.data.totalCount;
@@ -36,7 +40,7 @@ export const useAppointmentStore = defineStore('appointment', () => {
     try {
       const response = await appointmentService.updateStatus(id, data);
       if (response.isSuccess) {
-        await fetchAppointments({ PageNumber: pageNumber.value, PageSize: pageSize.value });
+        await fetchAppointments(lastFetchParams.value);
         return true;
       }
       return false;
@@ -55,12 +59,29 @@ export const useAppointmentStore = defineStore('appointment', () => {
         ? await appointmentService.deletePermanent(id)
         : await appointmentService.softDelete(id);
       if (response.isSuccess) {
-        await fetchAppointments({ PageNumber: pageNumber.value, PageSize: pageSize.value });
+        await fetchAppointments(lastFetchParams.value);
         return true;
       }
       return false;
     } catch (err: any) {
       error.value = err.message || 'Failed to delete appointment';
+      return false;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const restoreAppointment = async (id: string) => {
+    loading.value = true;
+    try {
+      const response = await appointmentService.restore(id);
+      if (response.isSuccess) {
+        await fetchAppointments(lastFetchParams.value);
+        return true;
+      }
+      return false;
+    } catch (err: any) {
+      error.value = err.message || 'Failed to restore appointment';
       return false;
     } finally {
       loading.value = false;
@@ -78,5 +99,6 @@ export const useAppointmentStore = defineStore('appointment', () => {
     fetchAppointments,
     updateStatus,
     deleteAppointment,
+    restoreAppointment,
   };
 });

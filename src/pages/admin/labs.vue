@@ -5,11 +5,13 @@
         <h1 class="text-2xl font-bold text-text">Laboratory Facilities</h1>
         <p class="text-sm text-text-secondary">Manage hospital lab units and contact details</p>
       </div>
-      <AppButton
-        label="Add Laboratory"
-        icon="icon-[heroicons-outline--plus]"
-        @click="openCreateModal"
-      />
+      <div class="flex items-center gap-2">
+        <AppButton
+          label="Add Laboratory"
+          icon="icon-[heroicons-outline--plus]"
+          @click="openCreateModal"
+        />
+      </div>
     </div>
 
     <AppTable
@@ -18,27 +20,55 @@
       :loading="labStore.loading"
       searchable
       search-placeholder="Search labs..."
+      server-paginated
+      :page-number="labStore.pageNumber"
+      :page-size="labStore.pageSize"
+      :total-count="labStore.totalCount"
+      :total-pages="labStore.totalPages"
+      @page-change="handlePageChange"
       @search="handleSearch"
     >
       <template #cell-actions="{ row }">
         <div class="flex items-center gap-2">
-          <AppButton
-            variant="ghost"
-            size="sm"
-            icon="icon-[heroicons-outline--pencil-square]"
-            icon-only
-            tooltip="Edit"
-            @click="openEditModal(row)"
-          />
-          <AppButton
-            variant="ghost"
-            size="sm"
-            icon="icon-[heroicons-outline--trash]"
-            icon-only
-            class="text-error hover:text-error"
-            tooltip="Delete"
-            @click="confirmDelete(row)"
-          />
+          <template v-if="!row.isDeleted">
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--pencil-square]"
+              icon-only
+              tooltip="Edit"
+              @click="openEditModal(row)"
+            />
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--trash]"
+              icon-only
+              class="text-warning hover:text-warning"
+              tooltip="Archive"
+              @click="confirmDelete(row, false)"
+            />
+          </template>
+          <template v-else>
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--arrow-path]"
+              icon-only
+              class="text-success hover:text-success"
+              tooltip="Restore"
+              @click="handleRestore(row)"
+            />
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--trash]"
+              icon-only
+              class="text-error hover:text-error"
+              tooltip="Delete Forever"
+              @click="confirmDelete(row, true)"
+            />
+          </template>
         </div>
       </template>
     </AppTable>
@@ -61,8 +91,12 @@
     <!-- Delete Confirmation -->
     <ConfirmDangerModal
       :is-open="isDeleteModalOpen"
-      title="Remove Laboratory"
-      :message="`Are you sure you want to remove the ${labToDelete?.name} facility?`"
+      :title="isHardDelete ? 'Delete Forever' : 'Archive Laboratory'"
+      :message="
+        isHardDelete
+          ? `Are you sure you want to PERMANENTLY delete the ${labToDelete?.name} facility? This action cannot be undone.`
+          : `Are you sure you want to archive the ${labToDelete?.name} facility? You can restore it later.`
+      "
       @close="isDeleteModalOpen = false"
       @confirm="handleDelete"
     />
@@ -83,6 +117,8 @@ import type { FormFieldRow } from '../../types/form';
 
 const labStore = useLabStore();
 const { success, error } = useToast();
+
+const isHardDelete = ref(false);
 
 const columns: TableColumn[] = [
   { key: 'name', label: 'Laboratory Name', sortable: true },
@@ -110,8 +146,12 @@ onMounted(() => {
   labStore.fetchLabs();
 });
 
+const handlePageChange = ({ pageNumber, pageSize }: { pageNumber: number; pageSize: number }) => {
+  labStore.fetchLabs({ PageNumber: pageNumber, PageSize: pageSize });
+};
+
 const handleSearch = (query: string) => {
-  labStore.fetchLabs({ Name: query });
+  labStore.fetchLabs({ Name: query, PageNumber: 1 });
 };
 
 const openCreateModal = () => {
@@ -142,19 +182,29 @@ const handleSubmit = async (data: any) => {
   }
 };
 
-const confirmDelete = (lab: any) => {
+const confirmDelete = (lab: any, isHard = false) => {
   labToDelete.value = lab;
+  isHardDelete.value = isHard;
   isDeleteModalOpen.value = true;
 };
 
 const handleDelete = async () => {
   if (!labToDelete.value) return;
-  const res = await labStore.deleteLab(labToDelete.value.id);
+  const res = await labStore.deleteLab(labToDelete.value.id, isHardDelete.value);
   if (res) {
-    success('Laboratory removed');
+    success(isHardDelete.value ? 'Lab deleted forever' : 'Lab archived');
     isDeleteModalOpen.value = false;
   } else {
     error(labStore.error || 'Delete failed');
+  }
+};
+
+const handleRestore = async (lab: any) => {
+  const res = await labStore.restoreLab(lab.id);
+  if (res) {
+    success('Lab restored');
+  } else {
+    error(labStore.error || 'Restore failed');
   }
 };
 </script>

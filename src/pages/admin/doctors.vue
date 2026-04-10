@@ -5,11 +5,13 @@
         <h1 class="text-2xl font-bold text-text">Medical Staff (Doctors)</h1>
         <p class="text-sm text-text-secondary">Manage doctor profiles and specializations</p>
       </div>
-      <AppButton
-        label="Register Doctor"
-        icon="icon-[heroicons-outline--user-plus]"
-        @click="openCreateModal"
-      />
+      <div class="flex items-center gap-2">
+        <AppButton
+          label="Register Doctor"
+          icon="icon-[heroicons-outline--user-plus]"
+          @click="openCreateModal"
+        />
+      </div>
     </div>
 
     <AppTable
@@ -19,6 +21,8 @@
       :loading="doctorStore.loading"
       searchable
       selectable
+      exportable
+      export-file-name="doctors-list"
       show-column-toggle
       columns-visibility-key="doctor-list"
       search-placeholder="Search doctors..."
@@ -56,23 +60,45 @@
 
       <template #cell-actions="{ row }">
         <div class="flex items-center gap-2">
-          <AppButton
-            variant="ghost"
-            size="sm"
-            icon="icon-[heroicons-outline--pencil-square]"
-            icon-only
-            tooltip="Edit"
-            @click="openEditModal(row)"
-          />
-          <AppButton
-            variant="ghost"
-            size="sm"
-            icon="icon-[heroicons-outline--trash]"
-            icon-only
-            class="text-error hover:text-error"
-            tooltip="Delete"
-            @click="confirmDelete(row)"
-          />
+          <template v-if="!row.isDeleted">
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--pencil-square]"
+              icon-only
+              tooltip="Edit"
+              @click="openEditModal(row)"
+            />
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--trash]"
+              icon-only
+              class="text-warning hover:text-warning"
+              tooltip="Archive"
+              @click="confirmDelete(row, false)"
+            />
+          </template>
+          <template v-else>
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--arrow-path]"
+              icon-only
+              class="text-success hover:text-success"
+              tooltip="Restore"
+              @click="handleRestore(row)"
+            />
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--trash]"
+              icon-only
+              class="text-error hover:text-error"
+              tooltip="Delete Forever"
+              @click="confirmDelete(row, true)"
+            />
+          </template>
         </div>
       </template>
     </AppTable>
@@ -95,8 +121,12 @@
     <!-- Delete Confirmation -->
     <ConfirmDangerModal
       :is-open="isDeleteModalOpen"
-      title="Remove Doctor"
-      :message="`Are you sure you want to remove Dr. ${doctorToDelete?.firstName}? Their records will be archived.`"
+      :title="isHardDelete ? 'Delete Forever' : 'Archive Doctor'"
+      :message="
+        isHardDelete
+          ? `Are you sure you want to PERMANENTLY delete Dr. ${doctorToDelete?.firstName}? This action cannot be undone.`
+          : `Are you sure you want to archive Dr. ${doctorToDelete?.firstName}? You can restore it later.`
+      "
       @close="isDeleteModalOpen = false"
       @confirm="handleDelete"
     />
@@ -122,8 +152,15 @@ const doctorStore = useDoctorStore();
 const departmentStore = useDepartmentStore();
 const { success, error } = useToast();
 
+const isHardDelete = ref(false);
+
 const columns: TableColumn[] = [
-  { key: 'name', label: 'Doctor', sortable: true },
+  { 
+    key: 'name', 
+    label: 'Doctor', 
+    sortable: true,
+    exportFormatter: (row) => `${row.firstName} ${row.lastName}`
+  },
   { key: 'email', label: 'Email', sortable: true },
   { key: 'phone', label: 'Phone', defaultHidden: true },
   { key: 'medicalLicenseNumber', label: 'License' },
@@ -184,7 +221,7 @@ onMounted(() => {
 });
 
 const handlePageChange = (payload: any) => {
-  doctorStore.fetchDoctors(payload);
+  doctorStore.fetchDoctors({ ...payload });
 };
 
 const handleSearch = (query: string) => {
@@ -231,19 +268,29 @@ const handleSubmit = async (data: any) => {
   }
 };
 
-const confirmDelete = (doctor: any) => {
+const confirmDelete = (doctor: any, isHard = false) => {
   doctorToDelete.value = doctor;
+  isHardDelete.value = isHard;
   isDeleteModalOpen.value = true;
 };
 
 const handleDelete = async () => {
   if (!doctorToDelete.value) return;
-  const res = await doctorStore.deleteDoctor(doctorToDelete.value.id);
+  const res = await doctorStore.deleteDoctor(doctorToDelete.value.id, isHardDelete.value);
   if (res) {
-    success('Doctor removed');
+    success(isHardDelete.value ? 'Doctor deleted forever' : 'Doctor archived');
     isDeleteModalOpen.value = false;
   } else {
     error(doctorStore.error || 'Delete failed');
+  }
+};
+
+const handleRestore = async (doctor: any) => {
+  const res = await doctorStore.restoreDoctor(doctor.id);
+  if (res) {
+    success('Doctor restored');
+  } else {
+    error(doctorStore.error || 'Restore failed');
   }
 };
 </script>

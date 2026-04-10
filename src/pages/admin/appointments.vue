@@ -46,23 +46,45 @@
 
       <template #cell-actions="{ row }">
         <div class="flex items-center gap-2">
-          <AppButton
-            variant="ghost"
-            size="sm"
-            icon="icon-[heroicons-outline--arrow-path]"
-            icon-only
-            tooltip="Update Status"
-            @click="openStatusModal(row)"
-          />
-          <AppButton
-            variant="ghost"
-            size="sm"
-            icon="icon-[heroicons-outline--trash]"
-            icon-only
-            class="text-error hover:text-error"
-            tooltip="Cancel/Delete"
-            @click="confirmDelete(row)"
-          />
+          <template v-if="!row.isDeleted">
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--pencil-square]"
+              icon-only
+              tooltip="Update Status"
+              @click="openStatusModal(row)"
+            />
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--trash]"
+              icon-only
+              class="text-warning hover:text-warning"
+              tooltip="Archive"
+              @click="confirmDelete(row, false)"
+            />
+          </template>
+          <template v-else>
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--arrow-path]"
+              icon-only
+              class="text-success hover:text-success"
+              tooltip="Restore"
+              @click="handleRestore(row)"
+            />
+            <AppButton
+              variant="ghost"
+              size="sm"
+              icon="icon-[heroicons-outline--trash]"
+              icon-only
+              class="text-error hover:text-error"
+              tooltip="Delete Forever"
+              @click="confirmDelete(row, true)"
+            />
+          </template>
         </div>
       </template>
     </AppTable>
@@ -102,8 +124,12 @@
     <!-- Delete Confirmation -->
     <ConfirmDangerModal
       :is-open="isDeleteModalOpen"
-      title="Cancel Appointment"
-      :message="`Are you sure you want to cancel the appointment for ${appointmentToDelete?.patient?.firstName}?`"
+      :title="isHardDelete ? 'Delete Forever' : 'Archive Appointment'"
+      :message="
+        isHardDelete
+          ? `Are you sure you want to PERMANENTLY delete this appointment? This action cannot be undone.`
+          : `Are you sure you want to archive this appointment? You can restore it later.`
+      "
       @close="isDeleteModalOpen = false"
       @confirm="handleDelete"
     />
@@ -124,6 +150,8 @@ import type { TableColumn } from '../../components/ui/AppTable.vue';
 
 const appointmentStore = useAppointmentStore();
 const { success, error } = useToast();
+
+const isHardDelete = ref(false);
 
 const columns: TableColumn[] = [
   { key: 'dateTime', label: 'Date & Time', sortable: true },
@@ -156,7 +184,7 @@ onMounted(() => {
 });
 
 const handlePageChange = (payload: any) => {
-  appointmentStore.fetchAppointments(payload);
+  appointmentStore.fetchAppointments({ ...payload });
 };
 
 const openStatusModal = (appointment: any) => {
@@ -179,19 +207,29 @@ const handleStatusUpdate = async () => {
   }
 };
 
-const confirmDelete = (appointment: any) => {
+const confirmDelete = (appointment: any, isHard = false) => {
   appointmentToDelete.value = appointment;
+  isHardDelete.value = isHard;
   isDeleteModalOpen.value = true;
 };
 
 const handleDelete = async () => {
   if (!appointmentToDelete.value) return;
-  const res = await appointmentStore.deleteAppointment(appointmentToDelete.value.id);
+  const res = await appointmentStore.deleteAppointment(appointmentToDelete.value.id, isHardDelete.value);
   if (res) {
-    success('Appointment cancelled');
+    success(isHardDelete.value ? 'Appointment deleted forever' : 'Appointment archived');
     isDeleteModalOpen.value = false;
   } else {
     error(appointmentStore.error || 'Operation failed');
+  }
+};
+
+const handleRestore = async (appointment: any) => {
+  const res = await appointmentStore.restoreAppointment(appointment.id);
+  if (res) {
+    success('Appointment restored');
+  } else {
+    error(appointmentStore.error || 'Restore failed');
   }
 };
 </script>

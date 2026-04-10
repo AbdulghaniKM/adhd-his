@@ -11,12 +11,16 @@ export const useDoctorStore = defineStore('doctor', () => {
   const pageSize = ref(10);
   const loading = ref(false);
   const error = ref<string | null>(null);
+  const lastFetchParams = ref<any>({});
 
   const fetchDoctors = async (params?: any) => {
+    if (params) {
+      lastFetchParams.value = { ...lastFetchParams.value, ...params };
+    }
     loading.value = true;
     error.value = null;
     try {
-      const response = await doctorService.getAll(params);
+      const response = await doctorService.getAll(lastFetchParams.value);
       if (response.isSuccess) {
         doctors.value = response.data.items;
         totalCount.value = response.data.totalCount;
@@ -36,7 +40,7 @@ export const useDoctorStore = defineStore('doctor', () => {
     try {
       const response = await doctorService.create(data);
       if (response.isSuccess) {
-        await fetchDoctors({ PageNumber: pageNumber.value, PageSize: pageSize.value });
+        await fetchDoctors(lastFetchParams.value);
         return true;
       }
       return false;
@@ -53,7 +57,7 @@ export const useDoctorStore = defineStore('doctor', () => {
     try {
       const response = await doctorService.update(id, data);
       if (response.isSuccess) {
-        await fetchDoctors({ PageNumber: pageNumber.value, PageSize: pageSize.value });
+        await fetchDoctors(lastFetchParams.value);
         return true;
       }
       return false;
@@ -72,12 +76,29 @@ export const useDoctorStore = defineStore('doctor', () => {
         ? await doctorService.deletePermanent(id)
         : await doctorService.softDelete(id);
       if (response.isSuccess) {
-        await fetchDoctors({ PageNumber: pageNumber.value, PageSize: pageSize.value });
+        await fetchDoctors(lastFetchParams.value);
         return true;
       }
       return false;
     } catch (err: any) {
       error.value = err.message || 'Failed to delete doctor';
+      return false;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const restoreDoctor = async (id: string) => {
+    loading.value = true;
+    try {
+      const response = await doctorService.restore(id);
+      if (response.isSuccess) {
+        await fetchDoctors(lastFetchParams.value);
+        return true;
+      }
+      return false;
+    } catch (err: any) {
+      error.value = err.message || 'Failed to restore doctor';
       return false;
     } finally {
       loading.value = false;
@@ -96,5 +117,6 @@ export const useDoctorStore = defineStore('doctor', () => {
     createDoctor,
     updateDoctor,
     deleteDoctor,
+    restoreDoctor,
   };
 });

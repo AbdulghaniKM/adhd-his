@@ -51,6 +51,11 @@ const adminService = {
     return response.data;
   },
 
+  restore: async (id: string) => {
+    const response = await api.patch<ApiSingleResponse<null>>(API_PATHS.ADMINS.SOFT(id));
+    return response.data;
+  },
+
   deletePermanent: async (id: string) => {
     const response = await api.delete<ApiSingleResponse<null>>(API_PATHS.ADMINS.SINGLE(id));
     return response.data;

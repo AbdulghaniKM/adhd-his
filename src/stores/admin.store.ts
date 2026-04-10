@@ -11,12 +11,16 @@ export const useAdminStore = defineStore('admin', () => {
   const pageSize = ref(10);
   const loading = ref(false);
   const error = ref<string | null>(null);
+  const lastFetchParams = ref<any>({});
 
   const fetchAdmins = async (params?: any) => {
+    if (params) {
+      lastFetchParams.value = { ...lastFetchParams.value, ...params };
+    }
     loading.value = true;
     error.value = null;
     try {
-      const response = await adminService.getAll(params);
+      const response = await adminService.getAll(lastFetchParams.value);
       if (response.isSuccess) {
         admins.value = response.data.items;
         totalCount.value = response.data.totalCount;
@@ -36,7 +40,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       const response = await adminService.create(data);
       if (response.isSuccess) {
-        await fetchAdmins({ PageNumber: pageNumber.value, PageSize: pageSize.value });
+        await fetchAdmins(lastFetchParams.value);
         return true;
       }
       return false;
@@ -53,7 +57,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       const response = await adminService.update(id, data);
       if (response.isSuccess) {
-        await fetchAdmins({ PageNumber: pageNumber.value, PageSize: pageSize.value });
+        await fetchAdmins(lastFetchParams.value);
         return true;
       }
       return false;
@@ -72,12 +76,29 @@ export const useAdminStore = defineStore('admin', () => {
         ? await adminService.deletePermanent(id)
         : await adminService.softDelete(id);
       if (response.isSuccess) {
-        await fetchAdmins({ PageNumber: pageNumber.value, PageSize: pageSize.value });
+        await fetchAdmins(lastFetchParams.value);
         return true;
       }
       return false;
     } catch (err: any) {
       error.value = err.message || 'Failed to delete admin';
+      return false;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const restoreAdmin = async (id: string) => {
+    loading.value = true;
+    try {
+      const response = await adminService.restore(id);
+      if (response.isSuccess) {
+        await fetchAdmins(lastFetchParams.value);
+        return true;
+      }
+      return false;
+    } catch (err: any) {
+      error.value = err.message || 'Failed to restore admin';
       return false;
     } finally {
       loading.value = false;
@@ -96,5 +117,6 @@ export const useAdminStore = defineStore('admin', () => {
     createAdmin,
     updateAdmin,
     deleteAdmin,
+    restoreAdmin,
   };
 });

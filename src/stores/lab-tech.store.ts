@@ -11,12 +11,16 @@ export const useLabTechStore = defineStore('labTech', () => {
   const pageSize = ref(10);
   const loading = ref(false);
   const error = ref<string | null>(null);
+  const lastFetchParams = ref<any>({});
 
   const fetchLabTechs = async (params?: any) => {
+    if (params) {
+      lastFetchParams.value = { ...lastFetchParams.value, ...params };
+    }
     loading.value = true;
     error.value = null;
     try {
-      const response = await labTechService.getAll(params);
+      const response = await labTechService.getAll(lastFetchParams.value);
       if (response.isSuccess) {
         labTechs.value = response.data.items;
         totalCount.value = response.data.totalCount;
@@ -36,7 +40,7 @@ export const useLabTechStore = defineStore('labTech', () => {
     try {
       const response = await labTechService.create(data);
       if (response.isSuccess) {
-        await fetchLabTechs({ PageNumber: pageNumber.value, PageSize: pageSize.value });
+        await fetchLabTechs(lastFetchParams.value);
         return true;
       }
       return false;
@@ -53,7 +57,7 @@ export const useLabTechStore = defineStore('labTech', () => {
     try {
       const response = await labTechService.update(id, data);
       if (response.isSuccess) {
-        await fetchLabTechs({ PageNumber: pageNumber.value, PageSize: pageSize.value });
+        await fetchLabTechs(lastFetchParams.value);
         return true;
       }
       return false;
@@ -72,12 +76,29 @@ export const useLabTechStore = defineStore('labTech', () => {
         ? await labTechService.deletePermanent(id)
         : await labTechService.softDelete(id);
       if (response.isSuccess) {
-        await fetchLabTechs({ PageNumber: pageNumber.value, PageSize: pageSize.value });
+        await fetchLabTechs(lastFetchParams.value);
         return true;
       }
       return false;
     } catch (err: any) {
       error.value = err.message || 'Failed to delete lab tech';
+      return false;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const restoreLabTech = async (id: string) => {
+    loading.value = true;
+    try {
+      const response = await labTechService.restore(id);
+      if (response.isSuccess) {
+        await fetchLabTechs(lastFetchParams.value);
+        return true;
+      }
+      return false;
+    } catch (err: any) {
+      error.value = err.message || 'Failed to restore lab tech';
       return false;
     } finally {
       loading.value = false;
@@ -96,5 +117,6 @@ export const useLabTechStore = defineStore('labTech', () => {
     createLabTech,
     updateLabTech,
     deleteLabTech,
+    restoreLabTech,
   };
 });

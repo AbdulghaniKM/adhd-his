@@ -11,12 +11,16 @@ export const usePatientStore = defineStore('patient', () => {
   const pageSize = ref(10);
   const loading = ref(false);
   const error = ref<string | null>(null);
+  const lastFetchParams = ref<any>({});
 
   const fetchPatients = async (params?: any) => {
+    if (params) {
+      lastFetchParams.value = { ...lastFetchParams.value, ...params };
+    }
     loading.value = true;
     error.value = null;
     try {
-      const response = await patientService.getAll(params);
+      const response = await patientService.getAll(lastFetchParams.value);
       if (response.isSuccess) {
         patients.value = response.data.items;
         totalCount.value = response.data.totalCount;
@@ -36,7 +40,7 @@ export const usePatientStore = defineStore('patient', () => {
     try {
       const response = await patientService.create(data);
       if (response.isSuccess) {
-        await fetchPatients({ PageNumber: pageNumber.value, PageSize: pageSize.value });
+        await fetchPatients(lastFetchParams.value);
         return true;
       }
       return false;
@@ -53,7 +57,7 @@ export const usePatientStore = defineStore('patient', () => {
     try {
       const response = await patientService.update(id, data);
       if (response.isSuccess) {
-        await fetchPatients({ PageNumber: pageNumber.value, PageSize: pageSize.value });
+        await fetchPatients(lastFetchParams.value);
         return true;
       }
       return false;
@@ -72,12 +76,29 @@ export const usePatientStore = defineStore('patient', () => {
         ? await patientService.deletePermanent(id)
         : await patientService.softDelete(id);
       if (response.isSuccess) {
-        await fetchPatients({ PageNumber: pageNumber.value, PageSize: pageSize.value });
+        await fetchPatients(lastFetchParams.value);
         return true;
       }
       return false;
     } catch (err: any) {
       error.value = err.message || 'Failed to delete patient';
+      return false;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const restorePatient = async (id: string) => {
+    loading.value = true;
+    try {
+      const response = await patientService.restore(id);
+      if (response.isSuccess) {
+        await fetchPatients(lastFetchParams.value);
+        return true;
+      }
+      return false;
+    } catch (err: any) {
+      error.value = err.message || 'Failed to restore patient';
       return false;
     } finally {
       loading.value = false;
@@ -96,5 +117,6 @@ export const usePatientStore = defineStore('patient', () => {
     createPatient,
     updatePatient,
     deletePatient,
+    restorePatient,
   };
 });

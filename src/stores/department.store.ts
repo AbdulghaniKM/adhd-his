@@ -11,12 +11,16 @@ export const useDepartmentStore = defineStore('department', () => {
   const pageSize = ref(10);
   const loading = ref(false);
   const error = ref<string | null>(null);
+  const lastFetchParams = ref<any>({});
 
   const fetchDepartments = async (params?: any) => {
+    if (params) {
+      lastFetchParams.value = { ...lastFetchParams.value, ...params };
+    }
     loading.value = true;
     error.value = null;
     try {
-      const response = await departmentService.getAll(params);
+      const response = await departmentService.getAll(lastFetchParams.value);
       if (response.isSuccess) {
         departments.value = response.data.items;
         totalCount.value = response.data.totalCount;
@@ -36,7 +40,7 @@ export const useDepartmentStore = defineStore('department', () => {
     try {
       const response = await departmentService.create(data);
       if (response.isSuccess) {
-        await fetchDepartments({ PageNumber: pageNumber.value, PageSize: pageSize.value });
+        await fetchDepartments(lastFetchParams.value);
         return true;
       }
       return false;
@@ -53,7 +57,7 @@ export const useDepartmentStore = defineStore('department', () => {
     try {
       const response = await departmentService.update(id, data);
       if (response.isSuccess) {
-        await fetchDepartments({ PageNumber: pageNumber.value, PageSize: pageSize.value });
+        await fetchDepartments(lastFetchParams.value);
         return true;
       }
       return false;
@@ -72,12 +76,29 @@ export const useDepartmentStore = defineStore('department', () => {
         ? await departmentService.deletePermanent(id)
         : await departmentService.softDelete(id);
       if (response.isSuccess) {
-        await fetchDepartments({ PageNumber: pageNumber.value, PageSize: pageSize.value });
+        await fetchDepartments(lastFetchParams.value);
         return true;
       }
       return false;
     } catch (err: any) {
       error.value = err.message || 'Failed to delete department';
+      return false;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const restoreDepartment = async (id: string) => {
+    loading.value = true;
+    try {
+      const response = await departmentService.restore(id);
+      if (response.isSuccess) {
+        await fetchDepartments(lastFetchParams.value);
+        return true;
+      }
+      return false;
+    } catch (err: any) {
+      error.value = err.message || 'Failed to restore department';
       return false;
     } finally {
       loading.value = false;
@@ -96,5 +117,6 @@ export const useDepartmentStore = defineStore('department', () => {
     createDepartment,
     updateDepartment,
     deleteDepartment,
+    restoreDepartment,
   };
 });

@@ -51,6 +51,11 @@ const doctorService = {
     return response.data;
   },
 
+  restore: async (id: string) => {
+    const response = await api.patch<ApiSingleResponse<null>>(API_PATHS.DOCTORS.SOFT(id));
+    return response.data;
+  },
+
   deletePermanent: async (id: string) => {
     const response = await api.delete<ApiSingleResponse<null>>(API_PATHS.DOCTORS.SINGLE(id));
     return response.data;
