@@ -1,13 +1,13 @@
 <template>
   <header
-    class="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-surface/80 px-6 backdrop-blur-md"
+    class="border-border bg-surface/80 sticky top-0 z-50 flex h-14 items-center justify-between border-b px-6 backdrop-blur-md"
   >
     <!-- Logo -->
     <div class="flex items-center gap-2.5">
-      <div class="flex size-7 items-center justify-center rounded-lg bg-primary">
+      <div class="bg-primary flex size-7 items-center justify-center rounded-lg">
         <span class="icon-[mdi--hospital-box] text-sm text-white" />
       </div>
-      <span class="text-sm font-bold text-text">ADHDx HIS</span>
+      <AppText variant="span" size="sm" weight="bold" color="text">ADHDx</AppText>
     </div>
 
     <!-- Right side -->
@@ -15,36 +15,49 @@
       <!-- User chip -->
       <div
         v-if="store.user"
-        class="flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1"
+        class="border-border bg-muted flex items-center gap-2 rounded-full border px-3 py-1"
       >
-        <span class="icon-[mdi--account-circle] text-base text-text-secondary" />
-        <span class="text-xs font-medium text-text">{{ store.user.name }}</span>
-        <span class="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+        <span class="icon-[mdi--account-circle] text-text-secondary text-base" />
+        <AppText variant="span" size="xs" weight="medium" color="text">{{ store.user.name }}</AppText>
+        <AppText
+          variant="span"
+          size="0.625rem"
+          weight="semibold"
+          color="primary"
+          class="bg-primary/10 rounded-full px-1.5 py-0.5"
+        >
           {{ store.role }}
-        </span>
+        </AppText>
       </div>
 
-      <!-- Theme toggle -->
+      <!-- Theme toggle — kept raw: dual-icon CSS transition not supported by AppButton -->
       <button
         type="button"
         :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-        class="theme-toggle relative flex size-8 items-center justify-center rounded-lg border border-border bg-muted text-text-secondary transition-colors duration-150 hover:bg-surface hover:text-text"
+        class="theme-toggle border-border bg-muted text-text-secondary hover:bg-surface hover:text-text relative flex size-8 items-center justify-center rounded-lg border transition-colors duration-150"
         @click="toggleTheme"
       >
-        <span class="icon-[mdi--weather-sunny] text-base transition-all duration-200" :class="isDark ? 'scale-0 opacity-0' : 'scale-100 opacity-100'" />
-        <span class="icon-[mdi--weather-night] absolute text-base transition-all duration-200" :class="isDark ? 'scale-100 opacity-100' : 'scale-0 opacity-0'" />
+        <span
+          class="icon-[mdi--weather-sunny] text-base transition-all duration-200"
+          :class="isDark ? 'scale-0 opacity-0' : 'scale-100 opacity-100'"
+        />
+        <span
+          class="icon-[mdi--weather-night] absolute text-base transition-all duration-200"
+          :class="isDark ? 'scale-100 opacity-100' : 'scale-0 opacity-0'"
+        />
       </button>
 
       <!-- Logout -->
-      <button
+      <AppButton
         v-if="store.token"
-        type="button"
+        icon-only
+        variant="ghost"
+        size="sm"
+        icon="mdi--logout"
         title="Sign out"
-        class="flex size-8 items-center justify-center rounded-lg text-text-secondary transition-colors duration-150 hover:bg-error/10 hover:text-error"
+        class="hover:bg-error/10! hover:text-error!"
         @click="handleLogout"
-      >
-        <span class="icon-[mdi--logout] text-base" />
-      </button>
+      />
     </div>
   </header>
 </template>
@@ -53,6 +66,8 @@
 import { useTheme } from '../composables/useTheme';
 import { AuthStore } from '../stores/auth.store';
 import { useRouter } from 'vue-router';
+import AppText from './ui/AppText.vue';
+import AppButton from './ui/AppButton.vue';
 
 const { isDark, toggleTheme } = useTheme();
 const store = AuthStore();
