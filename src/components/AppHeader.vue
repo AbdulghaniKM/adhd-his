@@ -11,9 +11,9 @@
     </router-link>
 
     <!-- Navigation (Centered) -->
-    <nav v-if="isAdmin" class="hidden items-center gap-1 md:flex">
+    <nav v-if="isAdmin || isDoctor" class="hidden items-center gap-1 md:flex">
       <router-link
-        v-for="link in adminLinks"
+        v-for="link in navigationLinks"
         :key="link.to"
         :to="link.to"
         class="text-text-secondary hover:text-text hover:bg-muted relative flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all"
@@ -103,6 +103,8 @@
     String(store.role).toLowerCase().includes('admin')
   );
 
+  const isDoctor = computed(() => store.role === AppRole.DOCTOR);
+
   const adminLinks = [
     { label: 'Dashboard', to: '/admin', icon: 'icon-[heroicons-outline--home]' },
     { label: 'Admins', to: '/admin/admins', icon: 'icon-[heroicons-outline--shield-check]' },
@@ -113,6 +115,16 @@
     { label: 'Depts', to: '/admin/departments', icon: 'icon-[heroicons-outline--building-office]' },
     { label: 'Calendar', to: '/admin/appointments', icon: 'icon-[heroicons-outline--calendar]' },
   ];
+
+  const doctorLinks = [
+    { label: 'Dashboard', to: '/doctor', icon: 'icon-[heroicons-outline--home]' },
+  ];
+
+  const navigationLinks = computed(() => {
+    if (isAdmin.value) return adminLinks;
+    if (isDoctor.value) return doctorLinks;
+    return [];
+  });
 
   const handleLogout = () => {
     store.clearSession();

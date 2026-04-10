@@ -214,7 +214,12 @@
       const res = await serviceMap[selectedRole.value](data.username, data.password);
       store.setSession(res.data);
       toast.success(`Welcome back, ${res.data.user.name}!`);
-      router.push({ name: 'home' });
+      
+      if (res.data.role === AppRole.DOCTOR) {
+        router.push({ name: 'doctor-dashboard' });
+      } else {
+        router.push({ name: 'admin-dashboard' });
+      }
     } catch {
       toast.error('Invalid credentials. Please try again.');
     } finally {

@@ -22,6 +22,14 @@ const appointmentService = {
     return response.data;
   },
 
+  getByDoctorId: async (doctorId: string, params?: any) => {
+    const response = await api.get<ApiResponse<AppointmentResponse>>(
+      API_PATHS.APPOINTMENTS.DOCTOR(doctorId),
+      { params },
+    );
+    return response.data;
+  },
+
   updateStatus: async (id: string, data: UpdateAppointmentStatusRequest) => {
     const response = await api.put<ApiSingleResponse<AppointmentResponse>>(
       API_PATHS.APPOINTMENTS.STATUS(id),

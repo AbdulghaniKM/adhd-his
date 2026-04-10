@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { AuthStore } from '../stores/auth.store';
+import { AppRole } from '../types/enums.types';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -21,6 +22,14 @@ const router = createRouter({
         { path: 'appointments', name: 'admin-appointments', component: () => import('../pages/admin/appointments.vue') },
       ],
     },
+    {
+      path: '/doctor',
+      name: 'doctor',
+      meta: { requiresAuth: true, role: AppRole.DOCTOR },
+      children: [
+        { path: '', name: 'doctor-dashboard', component: () => import('../pages/doctor/index.vue') },
+      ],
+    },
   ],
   scrollBehavior(to, from, savedPosition) {
     return { top: 0, behavior: 'smooth' };
@@ -33,7 +42,11 @@ router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth && !authStore.token) {
     next({ name: 'login' });
   } else if (to.name === 'login' && authStore.token) {
-    next({ name: 'admin-dashboard' });
+    if (authStore.role === AppRole.DOCTOR) {
+      next({ name: 'doctor-dashboard' });
+    } else {
+      next({ name: 'admin-dashboard' });
+    }
   } else {
     next();
   }
