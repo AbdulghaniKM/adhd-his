@@ -20,7 +20,7 @@
     </router-link>
 
     <!-- Navigation (Centered & Floating) -->
-    <nav v-if="isAdmin || isDoctor" class="bg-muted/40 border-border/40 hidden items-center gap-1 rounded-2xl border p-1 md:flex shadow-xs backdrop-blur-md">
+    <nav v-if="isAdmin || isDoctor || isLabTech" class="bg-muted/40 border-border/40 hidden items-center gap-1 rounded-2xl border p-1 md:flex shadow-xs backdrop-blur-md">
       <router-link
         v-for="link in navigationLinks"
         :key="link.to"
@@ -117,6 +117,7 @@
   );
 
   const isDoctor = computed(() => store.role === AppRole.DOCTOR);
+  const isLabTech = computed(() => store.role === AppRole.LAB_TECH);
 
   const adminLinks = [
     { label: 'Dashboard', to: '/admin', icon: 'icon-[heroicons-outline--home]' },
@@ -137,9 +138,17 @@
     { label: 'Settings', to: '/doctor/settings', icon: 'icon-[heroicons-outline--cog-6-tooth]' },
   ];
 
+  const labTechLinks = [
+    { label: 'Dashboard', to: '/lab-tech', icon: 'icon-[heroicons-outline--home]' },
+    { label: 'Patients', to: '/lab-tech/patients', icon: 'icon-[heroicons-outline--users]' },
+    { label: 'Units', to: '/lab-tech/labs', icon: 'icon-[heroicons-outline--beaker]' },
+    { label: 'Depts', to: '/lab-tech/departments', icon: 'icon-[heroicons-outline--building-office]' },
+  ];
+
   const navigationLinks = computed(() => {
     if (isAdmin.value) return adminLinks;
     if (isDoctor.value) return doctorLinks;
+    if (isLabTech.value) return labTechLinks;
     return [];
   });
 

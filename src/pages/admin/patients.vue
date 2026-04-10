@@ -149,7 +149,7 @@
   import AppForm from '../../components/ui/Fields/AppForm.vue';
   import ConfirmDangerModal from '../../components/ui/ConfirmDangerModal.vue';
   import { useToast } from '../../composables/useToast';
-  import { mapPatientStatus, mapGender, mapBloodType } from '../../utils/enum-mapper';
+  import { mapPatientStatus, mapGender, mapBloodType, BloodTypeLabels } from '../../utils/enum-mapper';
   import { formatDate } from '../../utils/format-date';
   import { Gender, BloodType, PatientStatus } from '../../types/enums.types';
   import type { TableColumn } from '../../components/ui/AppTable.vue';
@@ -226,7 +226,10 @@
         key: 'BloodType',
         label: 'Blood Type',
         type: 'select',
-        items: Object.values(BloodType).map((b) => ({ label: b, value: b })),
+        items: Object.entries(BloodTypeLabels).map(([value, label]) => ({
+          label,
+          value: Number(value),
+        })),
       },
       {
         key: 'Status',

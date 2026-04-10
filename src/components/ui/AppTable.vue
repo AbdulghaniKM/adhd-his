@@ -62,7 +62,7 @@
                   Visible Columns
                 </p>
               </div>
-              <div class="space-y-0.5 custom-scrollbar max-h-[60vh] overflow-y-auto">
+              <div class="space-y-0.5 custom-scrollbar max-h-[13.5rem] overflow-y-auto">
                 <button
                   v-for="col in toggleableColumns"
                   :key="col.key"

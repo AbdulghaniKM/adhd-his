@@ -10,7 +10,7 @@ const router = createRouter({
     {
       path: '/admin',
       name: 'admin',
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, roles: [AppRole.ADMIN, AppRole.SUPER_ADMIN] },
       children: [
         { path: '', name: 'admin-dashboard', component: () => import('../pages/admin/index.vue') },
         { path: 'admins', name: 'admin-admins', component: () => import('../pages/admin/admins.vue') },
@@ -25,13 +25,24 @@ const router = createRouter({
     {
       path: '/doctor',
       name: 'doctor',
-      meta: { requiresAuth: true, role: AppRole.DOCTOR },
+      meta: { requiresAuth: true, roles: [AppRole.DOCTOR] },
       children: [
         { path: '', name: 'doctor-dashboard', component: () => import('../pages/doctor/index.vue') },
         { path: 'patients', name: 'doctor-patients', component: () => import('../pages/admin/patients.vue') },
         { path: 'labs', name: 'doctor-labs', component: () => import('../pages/admin/labs.vue') },
         { path: 'appointments', name: 'doctor-appointments', component: () => import('../pages/admin/appointments.vue') },
         { path: 'settings', name: 'doctor-settings', component: () => import('../pages/doctor/settings.vue') },
+      ],
+    },
+    {
+      path: '/lab-tech',
+      name: 'lab-tech',
+      meta: { requiresAuth: true, roles: [AppRole.LAB_TECH] },
+      children: [
+        { path: '', name: 'lab-tech-dashboard', component: () => import('../pages/lab-tech/index.vue') },
+        { path: 'patients', name: 'lab-tech-patients', component: () => import('../pages/admin/patients.vue') },
+        { path: 'labs', name: 'lab-tech-labs', component: () => import('../pages/admin/labs.vue') },
+        { path: 'departments', name: 'lab-tech-departments', component: () => import('../pages/admin/departments.vue') },
       ],
     },
   ],
@@ -42,18 +53,36 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const authStore = AuthStore();
+  const userRole = authStore.role as AppRole;
 
+  // 1. Not logged in -> go to login (unless it's a public route)
   if (to.meta.requiresAuth && !authStore.token) {
-    next({ name: 'login' });
-  } else if (to.name === 'login' && authStore.token) {
-    if (authStore.role === AppRole.DOCTOR) {
-      next({ name: 'doctor-dashboard' });
-    } else {
-      next({ name: 'admin-dashboard' });
-    }
-  } else {
-    next();
+    return next({ name: 'login' });
   }
+
+  // 2. Logged in and trying to access login -> redirect to their dashboard
+  if (to.name === 'login' && authStore.token) {
+    if (userRole === AppRole.DOCTOR) return next({ name: 'doctor-dashboard' });
+    if (userRole === AppRole.LAB_TECH) return next({ name: 'lab-tech-dashboard' });
+    return next({ name: 'admin-dashboard' });
+  }
+
+  // 3. Check role-based access
+  if (to.meta.roles) {
+    const allowedRoles = to.meta.roles as AppRole[];
+    if (!allowedRoles.includes(userRole)) {
+      // Not allowed: redirect to their own dashboard
+      if (userRole === AppRole.DOCTOR) return next({ name: 'doctor-dashboard' });
+      if (userRole === AppRole.LAB_TECH) return next({ name: 'lab-tech-dashboard' });
+      if (userRole === AppRole.ADMIN || userRole === AppRole.SUPER_ADMIN) return next({ name: 'admin-dashboard' });
+      
+      // If role is unknown, clear session and login
+      authStore.clearSession();
+      return next({ name: 'login' });
+    }
+  }
+
+  next();
 });
 
 export default router;

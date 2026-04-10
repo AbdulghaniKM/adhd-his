@@ -153,7 +153,7 @@
   import AppModal from '../../components/ui/AppModal.vue';
   import ConfirmDangerModal from '../../components/ui/ConfirmDangerModal.vue';
   import { useToast } from '../../composables/useToast';
-  import { mapAppointmentStatus, mapAppointmentType } from '../../utils/enum-mapper';
+  import { mapAppointmentStatus, mapAppointmentType, AppointmentStatusLabels } from '../../utils/enum-mapper';
   import { formatDate } from '../../utils/format-date';
   import { AppointmentStatus } from '../../types/enums.types';
   import type { TableColumn } from '../../components/ui/AppTable.vue';
@@ -191,7 +191,7 @@
     [AppointmentStatus.CANCELLED]: 'bg-error/10 text-error',
   };
 
-  const availableStatuses = Object.values(AppointmentStatus);
+  const availableStatuses = Object.keys(AppointmentStatusLabels).map(Number);
 
   const isStatusModalOpen = ref(false);
   const selectedAppointment = ref<any>(null);

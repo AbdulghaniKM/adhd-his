@@ -217,6 +217,8 @@
       
       if (res.data.role === AppRole.DOCTOR) {
         router.push({ name: 'doctor-dashboard' });
+      } else if (res.data.role === AppRole.LAB_TECH) {
+        router.push({ name: 'lab-tech-dashboard' });
       } else {
         router.push({ name: 'admin-dashboard' });
       }
