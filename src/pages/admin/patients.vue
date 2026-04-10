@@ -70,6 +70,14 @@
             <AppButton
               variant="ghost"
               size="sm"
+              icon="icon-[heroicons-outline--eye]"
+              icon-only
+              tooltip="View Profile"
+              @click="navigateToProfile(row.id)"
+            />
+            <AppButton
+              variant="ghost"
+              size="sm"
               icon="icon-[heroicons-outline--pencil-square]"
               icon-only
               tooltip="Edit"
@@ -141,8 +149,10 @@
 
 <script setup lang="ts">
   import { ref, onMounted, computed } from 'vue';
+  import { useRouter } from 'vue-router';
   import { usePatientStore } from '../../stores/patient.store';
   import { useDoctorStore } from '../../stores/doctor.store';
+  import { AuthStore } from '../../stores/auth.store';
   import AppTable from '../../components/ui/AppTable.vue';
   import AppButton from '../../components/ui/AppButton.vue';
   import AppModal from '../../components/ui/AppModal.vue';
@@ -151,12 +161,14 @@
   import { useToast } from '../../composables/useToast';
   import { mapPatientStatus, mapGender, mapBloodType, BloodTypeLabels } from '../../utils/enum-mapper';
   import { formatDate } from '../../utils/format-date';
-  import { Gender, BloodType, PatientStatus } from '../../types/enums.types';
+  import { Gender, BloodType, PatientStatus, AppRole } from '../../types/enums.types';
   import type { TableColumn } from '../../components/ui/AppTable.vue';
   import type { FormFieldRow } from '../../types/form';
 
+  const router = useRouter();
   const patientStore = usePatientStore();
   const doctorStore = useDoctorStore();
+  const authStore = AuthStore();
   const { success, error } = useToast();
 
   const columns: TableColumn[] = [
@@ -270,6 +282,14 @@
 
   const handleSearch = (query: string) => {
     patientStore.fetchPatients({ FirstName: query, PageNumber: 1 });
+  };
+
+  const navigateToProfile = (id: string) => {
+    let routeName = 'admin-patient-profile';
+    if (authStore.role === AppRole.DOCTOR) routeName = 'doctor-patient-profile';
+    if (authStore.role === AppRole.LAB_TECH) routeName = 'lab-tech-patient-profile';
+
+    router.push({ name: routeName, params: { id } });
   };
 
   const openCreateModal = () => {

@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import patientService from '../services/patient.service';
-import type { PatientResponse, CreatePatientRequest, UpdatePatientRequest } from '../types';
+import type { PatientResponse, PatientProfileResponse, CreatePatientRequest, UpdatePatientRequest } from '../types';
 
 export const usePatientStore = defineStore('patient', () => {
   const patients = ref<PatientResponse[]>([]);
+  const currentProfile = ref<PatientProfileResponse | null>(null);
   const totalCount = ref(0);
   const totalPages = ref(0);
   const pageNumber = ref(1);
@@ -35,6 +36,23 @@ export const usePatientStore = defineStore('patient', () => {
     }
   };
 
+  const fetchProfile = async (id: string) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await patientService.getProfile(id);
+      if (response.isSuccess) {
+        currentProfile.value = response.data;
+        return response.data;
+      }
+    } catch (err: any) {
+      error.value = err.message || 'Failed to fetch patient profile';
+    } finally {
+      loading.value = false;
+    }
+    return null;
+  };
+
   const createPatient = async (data: CreatePatientRequest) => {
     loading.value = true;
     try {
@@ -58,6 +76,10 @@ export const usePatientStore = defineStore('patient', () => {
       const response = await patientService.update(id, data);
       if (response.isSuccess) {
         await fetchPatients(lastFetchParams.value);
+        // If updating the currently viewed profile
+        if (currentProfile.value?.id === id) {
+          await fetchProfile(id);
+        }
         return true;
       }
       return false;
@@ -107,6 +129,7 @@ export const usePatientStore = defineStore('patient', () => {
 
   return {
     patients,
+    currentProfile,
     totalCount,
     totalPages,
     pageNumber,
@@ -114,6 +137,7 @@ export const usePatientStore = defineStore('patient', () => {
     loading,
     error,
     fetchPatients,
+    fetchProfile,
     createPatient,
     updatePatient,
     deletePatient,

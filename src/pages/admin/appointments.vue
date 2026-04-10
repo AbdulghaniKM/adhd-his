@@ -49,6 +49,7 @@
         <div class="flex items-center gap-2">
           <template v-if="!row.isDeleted">
             <AppButton
+              v-if="row.status !== AppointmentStatus.CHECKED_OUT && row.status !== AppointmentStatus.CANCELLED"
               variant="ghost"
               size="sm"
               icon="icon-[heroicons-outline--pencil-square]"
@@ -191,10 +192,25 @@
     [AppointmentStatus.CANCELLED]: 'bg-error/10 text-error',
   };
 
-  const availableStatuses = Object.keys(AppointmentStatusLabels).map(Number);
+  const selectedAppointment = ref<any>(null);
+
+  const availableStatuses = computed(() => {
+    if (!selectedAppointment.value) return [];
+    const current = selectedAppointment.value.status;
+
+    if (current === AppointmentStatus.SCHEDULED) {
+      return [AppointmentStatus.CONFIRMED, AppointmentStatus.CANCELLED];
+    }
+    if (current === AppointmentStatus.CONFIRMED) {
+      return [AppointmentStatus.CHECKED_IN, AppointmentStatus.CANCELLED];
+    }
+    if (current === AppointmentStatus.CHECKED_IN) {
+      return [AppointmentStatus.CHECKED_OUT, AppointmentStatus.CANCELLED];
+    }
+    return [];
+  });
 
   const isStatusModalOpen = ref(false);
-  const selectedAppointment = ref<any>(null);
   const selectedStatus = ref<AppointmentStatus>(AppointmentStatus.SCHEDULED);
 
   const isDeleteModalOpen = ref(false);

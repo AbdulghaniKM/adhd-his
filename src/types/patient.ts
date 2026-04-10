@@ -1,4 +1,4 @@
-import { Gender, BloodType, PatientStatus } from './enums.types';
+import { Gender, BloodType, PatientStatus, AlergySeverity } from './enums.types';
 
 export interface PatientResponse {
   id: string;
@@ -24,9 +24,33 @@ export interface PatientResponse {
   imageUrl: string | null;
 }
 
+export interface AllergyResponse {
+  id: string;
+  patientId: string;
+  allergen: string;
+  reaction: string | null;
+  severity: AlergySeverity;
+  isDeleted: boolean;
+  deletedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface VitalsResponse {
+  id: string;
+  patientId: string;
+  heartRate: number | null;
+  bloodPressure: string | null;
+  weight: number | null;
+  height: number | null;
+  recordedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface PatientProfileResponse extends PatientResponse {
-  latestVitals?: any;
-  allergies?: any[];
+  latestVitals?: VitalsResponse;
+  allergies?: AllergyResponse[];
   lastVisits?: any[];
 }
 
@@ -45,3 +69,17 @@ export interface CreatePatientRequest {
 }
 
 export interface UpdatePatientRequest extends Partial<CreatePatientRequest> {}
+
+export interface CreateAllergyRequest {
+  allergen: string;
+  reaction?: string;
+  severity: AlergySeverity;
+}
+
+export interface CreateVitalsRequest {
+  heartRate?: number;
+  bloodPressure?: string;
+  weight?: number;
+  height?: number;
+  recordedAt: string;
+}

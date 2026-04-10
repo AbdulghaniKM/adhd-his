@@ -16,6 +16,7 @@ const router = createRouter({
         { path: 'admins', name: 'admin-admins', component: () => import('../pages/admin/admins.vue') },
         { path: 'doctors', name: 'admin-doctors', component: () => import('../pages/admin/doctors.vue') },
         { path: 'patients', name: 'admin-patients', component: () => import('../pages/admin/patients.vue') },
+        { path: 'patients/:id', name: 'admin-patient-profile', component: () => import('../pages/admin/patient-profile.vue') },
         { path: 'lab-techs', name: 'admin-lab-techs', component: () => import('../pages/admin/lab-techs.vue') },
         { path: 'labs', name: 'admin-labs', component: () => import('../pages/admin/labs.vue') },
         { path: 'departments', name: 'admin-departments', component: () => import('../pages/admin/departments.vue') },
@@ -29,6 +30,7 @@ const router = createRouter({
       children: [
         { path: '', name: 'doctor-dashboard', component: () => import('../pages/doctor/index.vue') },
         { path: 'patients', name: 'doctor-patients', component: () => import('../pages/admin/patients.vue') },
+        { path: 'patients/:id', name: 'doctor-patient-profile', component: () => import('../pages/admin/patient-profile.vue') },
         { path: 'labs', name: 'doctor-labs', component: () => import('../pages/admin/labs.vue') },
         { path: 'appointments', name: 'doctor-appointments', component: () => import('../pages/admin/appointments.vue') },
         { path: 'settings', name: 'doctor-settings', component: () => import('../pages/doctor/settings.vue') },
@@ -41,6 +43,7 @@ const router = createRouter({
       children: [
         { path: '', name: 'lab-tech-dashboard', component: () => import('../pages/lab-tech/index.vue') },
         { path: 'patients', name: 'lab-tech-patients', component: () => import('../pages/admin/patients.vue') },
+        { path: 'patients/:id', name: 'lab-tech-patient-profile', component: () => import('../pages/admin/patient-profile.vue') },
         { path: 'labs', name: 'lab-tech-labs', component: () => import('../pages/admin/labs.vue') },
         { path: 'departments', name: 'lab-tech-departments', component: () => import('../pages/admin/departments.vue') },
       ],
