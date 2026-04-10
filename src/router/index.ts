@@ -30,7 +30,6 @@ const router = createRouter({
         { path: '', name: 'doctor-dashboard', component: () => import('../pages/doctor/index.vue') },
         { path: 'patients', name: 'doctor-patients', component: () => import('../pages/admin/patients.vue') },
         { path: 'labs', name: 'doctor-labs', component: () => import('../pages/admin/labs.vue') },
-        { path: 'departments', name: 'doctor-departments', component: () => import('../pages/admin/departments.vue') },
         { path: 'appointments', name: 'doctor-appointments', component: () => import('../pages/admin/appointments.vue') },
         { path: 'settings', name: 'doctor-settings', component: () => import('../pages/doctor/settings.vue') },
       ],

@@ -8,8 +8,8 @@
     </div>
 
     <AppTable
-      :columns="columns"
-      :data="appointmentStore.appointments"
+      :columns="visibleColumns"
+      :data="isDoctorFlow ? appointmentStore.doctorAppointments : appointmentStore.appointments"
       :loading="appointmentStore.loading"
       searchable
       search-placeholder="Search by patient or doctor..."
@@ -144,7 +144,9 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, onMounted } from 'vue';
+  import { ref, onMounted, computed } from 'vue';
+  import { useRoute } from 'vue-router';
+  import { AuthStore } from '../../stores/auth.store';
   import { useAppointmentStore } from '../../stores/appointment.store';
   import AppTable from '../../components/ui/AppTable.vue';
   import AppButton from '../../components/ui/AppButton.vue';
@@ -157,18 +159,29 @@
   import type { TableColumn } from '../../components/ui/AppTable.vue';
 
   const appointmentStore = useAppointmentStore();
+  const authStore = AuthStore();
+  const route = useRoute();
   const { success, error } = useToast();
+
+  const isDoctorFlow = computed(() => route.path.startsWith('/doctor'));
 
   const isHardDelete = ref(false);
 
   const columns: TableColumn[] = [
-    { key: 'dateTime', label: 'Date & Time', sortable: true, formatter: formatDate },
+    { key: 'dateTime', label: 'Date & Time', sortable: true, formatter: (v) => formatDate(v, true) },
     { key: 'patient', label: 'Patient' },
     { key: 'doctor', label: 'Doctor' },
     { key: 'type', label: 'Type' },
     { key: 'status', label: 'Status' },
     { key: 'actions', label: 'Actions', class: 'text-end' },
   ];
+
+  const visibleColumns = computed(() => {
+    if (isDoctorFlow.value) {
+      return columns.filter((c) => c.key !== 'doctor');
+    }
+    return columns;
+  });
 
   const statusClasses: Record<number, string> = {
     [AppointmentStatus.SCHEDULED]: 'bg-blue-500/10 text-blue-500',
@@ -187,12 +200,20 @@
   const isDeleteModalOpen = ref(false);
   const appointmentToDelete = ref<any>(null);
 
+  const fetchAppointments = (payload?: any) => {
+    if (isDoctorFlow.value && authStore.user?.id) {
+      appointmentStore.fetchDoctorAppointments(authStore.user.id, payload);
+    } else {
+      appointmentStore.fetchAppointments(payload);
+    }
+  };
+
   onMounted(() => {
-    appointmentStore.fetchAppointments();
+    fetchAppointments();
   });
 
   const handlePageChange = (payload: any) => {
-    appointmentStore.fetchAppointments({ ...payload });
+    fetchAppointments(payload);
   };
 
   const openStatusModal = (appointment: any) => {
@@ -203,9 +224,12 @@
 
   const handleStatusUpdate = async () => {
     if (!selectedAppointment.value) return;
-    const res = await appointmentStore.updateStatus(selectedAppointment.value.id, {
-      status: selectedStatus.value,
-    });
+    const res = await appointmentStore.updateStatus(
+      selectedAppointment.value.id,
+      { status: selectedStatus.value },
+      isDoctorFlow.value,
+      authStore.user?.id,
+    );
 
     if (res) {
       success('Appointment status updated');
