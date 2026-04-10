@@ -1,6 +1,12 @@
-export interface Product {
-  id: number;
-  name: string;
-  price: number;
-  description: string;
-}
+export * from './enums.types';
+export * from './response.types';
+export * from './auth.types';
+export * from './admin';
+export * from './doctor';
+export * from './patient';
+export * from './lab-tech';
+export * from './lab';
+export * from './department';
+export * from './appointment';
+export * from './form';
+export * from './text';

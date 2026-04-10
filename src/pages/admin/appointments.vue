@@ -1,0 +1,197 @@
+<template>
+  <div class="space-y-6 p-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-text">Appointments</h1>
+        <p class="text-sm text-text-secondary">Monitor and manage hospital appointment schedules</p>
+      </div>
+    </div>
+
+    <AppTable
+      :columns="columns"
+      :data="appointmentStore.appointments"
+      :loading="appointmentStore.loading"
+      searchable
+      search-placeholder="Search by patient or doctor..."
+      server-paginated
+      :page-number="appointmentStore.pageNumber"
+      :page-size="appointmentStore.pageSize"
+      :total-count="appointmentStore.totalCount"
+      :total-pages="appointmentStore.totalPages"
+      @page-change="handlePageChange"
+    >
+      <template #cell-patient="{ row }">
+        <span class="font-medium text-text">{{ row.patient?.firstName }} {{ row.patient?.lastName }}</span>
+      </template>
+
+      <template #cell-doctor="{ row }">
+        <span class="text-text-secondary">Dr. {{ row.doctor?.firstName }} {{ row.doctor?.lastName }}</span>
+      </template>
+
+      <template #cell-dateTime="{ value }">
+        <div class="text-xs">
+          <div class="font-medium text-text">{{ new Date(value).toLocaleDateString() }}</div>
+          <div class="text-text-secondary">{{ new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}</div>
+        </div>
+      </template>
+
+      <template #cell-status="{ value }">
+        <span
+          class="rounded-full px-2 py-1 text-xs font-medium"
+          :class="statusClasses[value] || 'bg-muted text-text-secondary'"
+        >
+          {{ mapEnum(value) }}
+        </span>
+      </template>
+
+      <template #cell-actions="{ row }">
+        <div class="flex items-center gap-2">
+          <AppButton
+            variant="ghost"
+            size="sm"
+            icon="icon-[heroicons-outline--arrow-path]"
+            icon-only
+            tooltip="Update Status"
+            @click="openStatusModal(row)"
+          />
+          <AppButton
+            variant="ghost"
+            size="sm"
+            icon="icon-[heroicons-outline--trash]"
+            icon-only
+            class="text-error hover:text-error"
+            tooltip="Cancel/Delete"
+            @click="confirmDelete(row)"
+          />
+        </div>
+      </template>
+    </AppTable>
+
+    <!-- Status Update Modal -->
+    <AppModal
+      :is-open="isStatusModalOpen"
+      title="Update Appointment Status"
+      max-width="sm"
+      @close="isStatusModalOpen = false"
+    >
+      <div class="space-y-4 py-4">
+        <div class="space-y-1.5">
+          <label class="text-xs font-semibold uppercase tracking-wider text-text-secondary">New Status</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              v-for="status in availableStatuses"
+              :key="status"
+              type="button"
+              class="rounded-xl border border-border p-3 text-start transition-all hover:border-primary"
+              :class="selectedStatus === status ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'bg-surface'"
+              @click="selectedStatus = status"
+            >
+              <div class="text-sm font-bold text-text">{{ mapEnum(status) }}</div>
+            </button>
+          </div>
+        </div>
+        <AppButton
+          label="Update Status"
+          class="w-full"
+          :loading="appointmentStore.loading"
+          @click="handleStatusUpdate"
+        />
+      </div>
+    </AppModal>
+
+    <!-- Delete Confirmation -->
+    <ConfirmDangerModal
+      :is-open="isDeleteModalOpen"
+      title="Cancel Appointment"
+      :message="`Are you sure you want to cancel the appointment for ${appointmentToDelete?.patient?.firstName}?`"
+      @close="isDeleteModalOpen = false"
+      @confirm="handleDelete"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import { useAppointmentStore } from '../../stores/appointment.store';
+import AppTable from '../../components/ui/AppTable.vue';
+import AppButton from '../../components/ui/AppButton.vue';
+import AppModal from '../../components/ui/AppModal.vue';
+import ConfirmDangerModal from '../../components/ui/ConfirmDangerModal.vue';
+import { useToast } from '../../composables/useToast';
+import { mapEnum } from '../../utils/enum-mapper';
+import { AppointmentStatus } from '../../types/enums.types';
+import type { TableColumn } from '../../components/ui/AppTable.vue';
+
+const appointmentStore = useAppointmentStore();
+const { success, error } = useToast();
+
+const columns: TableColumn[] = [
+  { key: 'dateTime', label: 'Date & Time', sortable: true },
+  { key: 'patient', label: 'Patient' },
+  { key: 'doctor', label: 'Doctor' },
+  { key: 'type', label: 'Type' },
+  { key: 'status', label: 'Status' },
+  { key: 'actions', label: 'Actions', class: 'text-end' },
+];
+
+const statusClasses: Record<number, string> = {
+  [AppointmentStatus.SCHEDULED]: 'bg-blue-500/10 text-blue-500',
+  [AppointmentStatus.CONFIRMED]: 'bg-indigo-500/10 text-indigo-500',
+  [AppointmentStatus.CHECKED_IN]: 'bg-amber-500/10 text-amber-500',
+  [AppointmentStatus.CHECKED_OUT]: 'bg-green-500/10 text-green-500',
+  [AppointmentStatus.CANCELLED]: 'bg-error/10 text-error',
+};
+
+const availableStatuses = Object.values(AppointmentStatus);
+
+const isStatusModalOpen = ref(false);
+const selectedAppointment = ref<any>(null);
+const selectedStatus = ref<AppointmentStatus>(AppointmentStatus.SCHEDULED);
+
+const isDeleteModalOpen = ref(false);
+const appointmentToDelete = ref<any>(null);
+
+onMounted(() => {
+  appointmentStore.fetchAppointments();
+});
+
+const handlePageChange = (payload: any) => {
+  appointmentStore.fetchAppointments(payload);
+};
+
+const openStatusModal = (appointment: any) => {
+  selectedAppointment.value = appointment;
+  selectedStatus.value = appointment.status;
+  isStatusModalOpen.value = true;
+};
+
+const handleStatusUpdate = async () => {
+  if (!selectedAppointment.value) return;
+  const res = await appointmentStore.updateStatus(selectedAppointment.value.id, {
+    status: selectedStatus.value,
+  });
+
+  if (res) {
+    success('Appointment status updated');
+    isStatusModalOpen.value = false;
+  } else {
+    error(appointmentStore.error || 'Update failed');
+  }
+};
+
+const confirmDelete = (appointment: any) => {
+  appointmentToDelete.value = appointment;
+  isDeleteModalOpen.value = true;
+};
+
+const handleDelete = async () => {
+  if (!appointmentToDelete.value) return;
+  const res = await appointmentStore.deleteAppointment(appointmentToDelete.value.id);
+  if (res) {
+    success('Appointment cancelled');
+    isDeleteModalOpen.value = false;
+  } else {
+    error(appointmentStore.error || 'Operation failed');
+  }
+};
+</script>

@@ -8,7 +8,7 @@ import { initializeConfig } from './config';
 // Initialize app configuration (theme, SEO, fonts, etc.)
 initializeConfig();
 
-const pinia = createPinia();
+export const pinia = createPinia();
 const app = createApp(App);
 
 app.use(pinia);

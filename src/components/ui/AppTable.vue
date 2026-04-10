@@ -1,49 +1,144 @@
 <template>
-  <div class="w-full">
-    <!-- ÔöÇÔöÇ Toolbar ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ -->
-    <div v-if="searchable || $slots['toolbar-end']" class="mb-3 flex w-full min-w-0 items-center gap-2">
-      <div v-if="searchable" class="relative min-w-0 flex-1 sm:max-w-sm">
-        <AppIcon
-          name="icon-[heroicons-outline--magnifying-glass]"
-          :size="1.125"
-          class="text-text-secondary pointer-events-none absolute start-3 top-1/2 -translate-y-1/2"
-        />
-        <input
-          ref="searchInputRef"
-          v-model="searchQuery"
-          type="text"
-          :placeholder="searchPlaceholder"
-          class="border-border bg-surface text-text placeholder:text-text-secondary/60 w-full rounded-xl border py-2 pe-9 ps-9 text-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-        />
-        <button
-          v-if="searchQuery"
-          type="button"
-          class="text-text-secondary hover:text-text absolute end-2.5 top-1/2 -translate-y-1/2 transition-colors"
-          aria-label="Clear search"
-          @click="searchQuery = ''; searchInputRef?.focus()"
-        >
-          <AppIcon name="icon-[heroicons-outline--x-mark]" :size="1" />
-        </button>
+  <div class="w-full space-y-3">
+    <!-- ── Toolbar ────────────────────────────────────────────────────────────────────────────────────────── -->
+    <div v-if="searchable || showColumnToggle || $slots['toolbar-end']" class="flex w-full flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-1 items-center gap-2 min-w-0 sm:max-w-md">
+        <!-- Search -->
+        <div v-if="searchable" class="relative flex-1">
+          <AppIcon
+            name="icon-[heroicons-outline--magnifying-glass]"
+            :size="1.125"
+            class="text-text-secondary pointer-events-none absolute start-3 top-1/2 -translate-y-1/2"
+          />
+          <input
+            ref="searchInputRef"
+            v-model="searchQuery"
+            type="text"
+            :placeholder="searchPlaceholder"
+            class="border-border bg-surface text-text placeholder:text-text-secondary/60 w-full rounded-xl border py-2 pe-9 ps-9 text-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+          />
+          <button
+            v-if="searchQuery"
+            type="button"
+            class="text-text-secondary hover:text-text absolute end-2.5 top-1/2 -translate-y-1/2 transition-colors"
+            aria-label="Clear search"
+            @click="searchQuery = ''; searchInputRef?.focus()"
+          >
+            <AppIcon name="icon-[heroicons-outline--x-mark]" :size="1" />
+          </button>
+        </div>
+
+        <!-- Column Toggle (Moved to Toolbar) -->
+        <div v-if="showColumnToggle" ref="columnToggleRef" class="relative">
+          <AppButton
+            variant="outline"
+            size="md"
+            icon="icon-[heroicons-outline--view-columns]"
+            :label="`${visibleToggleableCount}/${toggleableColumns.length}`"
+            class="hidden sm:flex"
+            @click="showColumnMenu = !showColumnMenu"
+          />
+          <AppButton
+            variant="outline"
+            size="md"
+            icon="icon-[heroicons-outline--view-columns]"
+            icon-only
+            class="sm:hidden"
+            @click="showColumnMenu = !showColumnMenu"
+          />
+          
+          <Transition
+            enter-active-class="transition duration-150 ease-out"
+            enter-from-class="opacity-0 scale-95 translate-y-1"
+            enter-to-class="opacity-100 scale-100 translate-y-0"
+            leave-active-class="transition duration-100 ease-in"
+            leave-from-class="opacity-100 scale-100 translate-y-0"
+            leave-to-class="opacity-0 scale-95 translate-y-1"
+          >
+            <div
+              v-if="showColumnMenu"
+              class="border-border bg-surface absolute start-0 top-full z-50 mt-1.5 min-w-[14rem] origin-top-left rounded-2xl border p-1.5 shadow-xl shadow-black/8"
+            >
+              <div class="flex items-center justify-between px-3 py-2">
+                <p class="text-text-secondary text-xs font-semibold uppercase tracking-wider">Visible Columns</p>
+                <span v-if="columnSavedHint" class="text-success text-[10px] font-bold uppercase">Saved</span>
+              </div>
+              <div class="border-border mb-1 border-t" />
+              <div class="max-h-[60vh] overflow-y-auto py-1 custom-scrollbar">
+                <button
+                  v-for="col in toggleableColumns"
+                  :key="col.key"
+                  type="button"
+                  class="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm transition-all"
+                  :class="visibleColumnsSet.has(col.key) ? 'text-text hover:bg-primary/5' : 'text-text-secondary/60 hover:bg-muted'"
+                  @click="toggleColumn(col.key)"
+                >
+                  <span class="font-medium">{{ col.label }}</span>
+                  <div
+                    class="flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors duration-200"
+                    :class="visibleColumnsSet.has(col.key) ? 'bg-primary' : 'bg-border'"
+                  >
+                    <div
+                      class="size-4 rounded-full bg-white shadow-sm transition-transform duration-200"
+                      :class="visibleColumnsSet.has(col.key) ? 'translate-x-4' : 'translate-x-0'"
+                    />
+                  </div>
+                </button>
+              </div>
+              <div class="border-border mt-1 border-t" />
+              <button
+                type="button"
+                class="text-text-secondary hover:text-primary mt-1 flex w-full items-center justify-center gap-2 rounded-xl py-2 text-xs font-semibold transition-colors"
+                @click="resetColumnVisibility"
+              >
+                <AppIcon name="icon-[heroicons-outline--arrow-path]" :size="0.875" />
+                Reset to Defaults
+              </button>
+            </div>
+          </Transition>
+        </div>
       </div>
+
       <div class="flex items-center gap-2">
         <slot name="toolbar-end" />
       </div>
     </div>
 
-    <!-- ÔöÇÔöÇ Table wrapper ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ -->
+    <!-- ── Table Wrapper ───────────────────────────────────────────────────────────────────────────────────── -->
     <div
-      class="overflow-hidden rounded-2xl"
-      :class="outlined ? 'border-border border bg-surface' : ''"
+      class="overflow-hidden rounded-2xl transition-all"
+      :class="outlined ? 'border-border border bg-surface shadow-sm' : ''"
     >
-      <div class="overflow-x-auto" style="-webkit-overflow-scrolling: touch">
-        <table class="w-full min-w-[48rem] border-collapse" style="table-layout: auto">
+      <div
+        ref="scrollContainerRef"
+        class="overflow-x-auto custom-scrollbar"
+        style="-webkit-overflow-scrolling: touch"
+        @scroll="handleScroll"
+      >
+        <table
+          class="w-full min-w-[48rem] border-collapse"
+          :class="[compact ? 'table-compact' : '', !isAtEnd ? 'has-sticky-shadow' : '']"
+        >
           <!-- Header -->
           <thead>
-            <tr class="bg-muted/60">
+            <tr class="bg-muted/40 border-border border-b">
+              <!-- Selection Checkbox -->
+              <th v-if="selectable" class="w-12 px-4 py-3 text-start">
+                <div class="flex items-center justify-center">
+                  <input
+                    type="checkbox"
+                    :checked="isAllSelected"
+                    :indeterminate="isPartiallySelected"
+                    class="accent-primary size-4 cursor-pointer rounded-lg"
+                    @change="toggleSelectAll"
+                  />
+                </div>
+              </th>
+
               <th
                 v-for="column in visibleColumns"
                 :key="column.key"
-                class="px-4 py-3 text-start text-xs font-semibold uppercase tracking-wider whitespace-nowrap"
+                class="px-4 py-3 text-start text-xs font-bold uppercase tracking-widest"
                 :class="[
                   column.class,
                   column.key === 'actions' ? 'sticky-actions-th w-px' : '',
@@ -53,20 +148,20 @@
                 <button
                   v-if="isColumnSortable(column)"
                   type="button"
-                  class="group flex items-center gap-1 transition-colors"
+                  class="group flex items-center gap-1.5 transition-colors"
                   :class="sortKey === column.key ? 'text-primary' : 'hover:text-text'"
                   @click="handleSort(column.key)"
                 >
                   <span>{{ column.label }}</span>
-                  <span
-                    class="flex size-5 items-center justify-center rounded transition-all"
-                    :class="sortKey === column.key ? 'bg-primary/10 opacity-100' : 'opacity-0 group-hover:opacity-50'"
+                  <div
+                    class="flex size-5 items-center justify-center rounded-lg transition-all"
+                    :class="sortKey === column.key ? 'bg-primary text-white scale-110' : 'bg-muted text-text-secondary opacity-0 group-hover:opacity-100'"
                   >
                     <AppIcon
-                      :name="sortKey === column.key && sortOrder === 'desc' ? 'icon-[heroicons-outline--bars-arrow-down]' : 'icon-[heroicons-outline--bars-arrow-up]'"
-                      :size="0.875"
+                      :name="sortKey === column.key && sortOrder === 'desc' ? 'icon-[heroicons--bars-arrow-down]' : 'icon-[heroicons--bars-arrow-up]'"
+                      :size="0.75"
                     />
-                  </span>
+                  </div>
                 </button>
                 <span v-else>{{ column.label }}</span>
               </th>
@@ -78,29 +173,31 @@
             <!-- Skeleton loading -->
             <template v-if="loading">
               <tr v-for="i in skeletonRows" :key="`skeleton-${i}`" class="border-border/40 border-b">
+                <td v-if="selectable" class="px-4 py-3.5"><div class="bg-muted mx-auto size-4 animate-pulse rounded" /></td>
                 <td v-for="column in visibleColumns" :key="column.key" class="px-4 py-3.5">
-                  <div class="bg-muted h-4 animate-pulse rounded-md" :class="column.key === 'actions' ? 'w-16' : 'w-full max-w-[10rem]'" />
+                  <div class="bg-muted h-4 animate-pulse rounded-lg" :class="column.key === 'actions' ? 'w-16 ms-auto' : 'w-full max-w-[10rem]'" />
                 </td>
               </tr>
             </template>
 
             <!-- Empty state -->
             <tr v-else-if="displayData.length === 0">
-              <td :colspan="visibleColumns.length" class="py-16 text-center">
-                <div class="flex flex-col items-center gap-3">
-                  <div class="bg-muted flex size-14 items-center justify-center rounded-2xl">
-                    <AppIcon name="icon-[heroicons-outline--inbox-stack]" :size="1.75" class="text-text-secondary/50" />
+              <td :colspan="visibleColumns.length + (selectable ? 1 : 0)" class="py-20 text-center">
+                <div class="flex flex-col items-center gap-4">
+                  <div class="bg-muted flex size-16 items-center justify-center rounded-3xl shadow-inner">
+                    <AppIcon name="icon-[heroicons-outline--inbox-stack]" :size="2" class="text-text-secondary/40" />
                   </div>
-                  <div>
-                    <p class="text-text mb-0.5 text-sm font-medium">{{ emptyMessage }}</p>
-                    <p v-if="searchQuery" class="text-text-secondary text-xs">Try adjusting your search term</p>
+                  <div class="space-y-1">
+                    <p class="text-text text-base font-bold">{{ emptyMessage }}</p>
+                    <p v-if="searchQuery" class="text-text-secondary text-sm">No results match "{{ searchQuery }}"</p>
                   </div>
                   <AppButton
                     v-if="searchQuery"
-                    variant="ghost"
-                    label="Clear search"
+                    variant="outline"
+                    label="Clear Search"
                     icon="icon-[heroicons-outline--arrow-path]"
                     size="sm"
+                    class="rounded-full"
                     @click="searchQuery = ''"
                   />
                 </div>
@@ -112,13 +209,30 @@
               v-for="(row, index) in displayData"
               v-else
               :key="getRowKey(row, index)"
-              class="table-row-data border-border/40 border-b transition-colors last:border-b-0 hover:bg-primary/[0.03]"
+              class="table-row-data group border-border/40 border-b transition-all last:border-b-0 hover:bg-primary/[0.03]"
+              :class="isRowSelected(row) ? 'bg-primary/[0.05]' : ''"
             >
+              <!-- Row Checkbox -->
+              <td v-if="selectable" class="w-12 px-4 py-3">
+                <div class="flex items-center justify-center">
+                  <input
+                    type="checkbox"
+                    :checked="isRowSelected(row)"
+                    class="accent-primary size-4 cursor-pointer rounded-lg"
+                    @change="toggleRowSelection(row)"
+                  />
+                </div>
+              </td>
+
               <td
                 v-for="column in visibleColumns"
                 :key="column.key"
-                class="text-text min-w-0 whitespace-nowrap px-4 py-3 text-sm"
-                :class="[column.class, column.key === 'actions' ? 'sticky-actions-td w-px' : '']"
+                class="text-text min-w-0 whitespace-nowrap px-4 py-3 text-sm transition-all"
+                :class="[
+                  column.class,
+                  column.key === 'actions' ? 'sticky-actions-td w-px' : '',
+                  isRowSelected(row) ? 'font-medium' : ''
+                ]"
               >
                 <slot :name="`cell-${column.key}`" :row="row" :value="getValue(row, column.key)" :column="column">
                   <AppTooltip
@@ -127,7 +241,7 @@
                     placement="top"
                     :dark="false"
                   >
-                    <span class="text-text-secondary block max-w-[14rem] truncate text-start text-sm">
+                    <span class="text-text-secondary block max-w-[16rem] truncate text-start text-sm">
                       {{ display(getValue(row, column.key)) }}
                     </span>
                   </AppTooltip>
@@ -142,25 +256,31 @@
       </div>
     </div>
 
-    <!-- ÔöÇÔöÇ Bottom bar ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ -->
+    <!-- ── Footer / Pagination ─────────────────────────────────────────────────────────────────────────────── -->
     <div
-      v-if="showPagination || showColumnToggle"
-      class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+      v-if="showPagination"
+      class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
     >
-      <!-- Left: info + controls -->
-      <div class="flex flex-wrap items-center gap-2">
-        <span v-if="showPagination" class="text-text-secondary text-sm tabular-nums">
-          {{ paginationStart }}&ndash;{{ paginationEnd }} {{ ofLabel }} {{ paginationTotal }}
+      <!-- Left: Selection Info + Page Size -->
+      <div class="flex flex-wrap items-center gap-3">
+        <div v-if="selectable && selected.length > 0" class="bg-primary/10 text-primary flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold ring-1 ring-primary/20">
+          <AppIcon name="icon-[heroicons--check-circle]" :size="0.875" />
+          {{ selected.length }} Selected
+          <button type="button" class="hover:text-primary-dark ms-1 underline transition-colors" @click="emit('update:selected', [])">Clear</button>
+        </div>
+
+        <span class="text-text-secondary text-sm tabular-nums">
+          Showing <span class="text-text font-semibold">{{ paginationStart }}</span> to <span class="text-text font-semibold">{{ paginationEnd }}</span> of <span class="text-text font-semibold">{{ paginationTotal }}</span>
         </span>
 
         <!-- Page size selector -->
         <div v-if="serverPaginated && pageSizeOptions.length > 0" ref="pageSizeRef" class="relative">
           <button
             type="button"
-            class="border-border bg-surface text-text hover:bg-muted flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-colors"
+            class="border-border bg-surface text-text hover:bg-muted flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-bold transition-all"
             @click="showPageSizeMenu = !showPageSizeMenu"
           >
-            {{ pageSize }} / page
+            {{ pageSize }} per page
             <AppIcon name="icon-[heroicons--chevron-up-down]" :size="0.75" class="text-text-secondary" />
           </button>
           <Transition
@@ -171,13 +291,13 @@
             leave-from-class="opacity-100 scale-100"
             leave-to-class="opacity-0 scale-95"
           >
-            <div v-if="showPageSizeMenu" class="border-border bg-surface absolute bottom-full end-0 z-50 mb-1.5 min-w-[5rem] origin-bottom rounded-xl border p-1 shadow-lg">
+            <div v-if="showPageSizeMenu" class="border-border bg-surface absolute bottom-full start-0 z-50 mb-1.5 min-w-[6rem] origin-bottom-left rounded-xl border p-1 shadow-lg">
               <button
                 v-for="n in pageSizeOptions"
                 :key="n"
                 type="button"
                 class="flex w-full items-center justify-center rounded-lg px-3 py-1.5 text-sm transition-colors"
-                :class="n === pageSize ? 'bg-primary/10 text-primary font-medium' : 'text-text hover:bg-muted'"
+                :class="n === pageSize ? 'bg-primary/10 text-primary font-bold' : 'text-text hover:bg-muted'"
                 @click="selectPageSize(n)"
               >
                 {{ n }}
@@ -185,126 +305,60 @@
             </div>
           </Transition>
         </div>
-
-        <!-- Column toggle -->
-        <div v-if="showColumnToggle" ref="columnToggleRef" class="relative">
-          <button
-            type="button"
-            class="border-border bg-surface text-text-secondary hover:text-text hover:bg-muted flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-colors"
-            aria-haspopup="true"
-            :aria-expanded="showColumnMenu"
-            @click="showColumnMenu = !showColumnMenu"
-          >
-            <AppIcon name="icon-[heroicons-outline--view-columns]" :size="1" />
-            <span class="text-text-secondary">{{ visibleToggleableCount }}/{{ toggleableColumns.length }}</span>
-          </button>
-          <Transition
-            enter-active-class="transition duration-150 ease-out"
-            enter-from-class="opacity-0 scale-95 translate-y-1"
-            enter-to-class="opacity-100 scale-100 translate-y-0"
-            leave-active-class="transition duration-100 ease-in"
-            leave-from-class="opacity-100 scale-100 translate-y-0"
-            leave-to-class="opacity-0 scale-95 translate-y-1"
-          >
-            <div
-              v-if="showColumnMenu"
-              class="border-border bg-surface absolute start-0 bottom-full z-50 mb-1.5 min-w-[13rem] origin-bottom-left rounded-xl border p-1 shadow-xl shadow-black/8"
-            >
-              <div class="flex items-center justify-between px-3 py-2">
-                <p class="text-text-secondary text-xs font-semibold">Columns</p>
-                <Transition
-                  enter-active-class="transition duration-200 ease-out"
-                  enter-from-class="opacity-0 scale-90"
-                  enter-to-class="opacity-100 scale-100"
-                  leave-active-class="transition duration-150 ease-in"
-                  leave-from-class="opacity-100 scale-100"
-                  leave-to-class="opacity-0 scale-90"
-                >
-                  <span v-if="columnSavedHint" class="text-success bg-success/10 flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-medium">
-                    <AppIcon name="icon-[heroicons-outline--check]" :size="0.625" />
-                    Saved
-                  </span>
-                </Transition>
-              </div>
-              <div class="border-border border-t" />
-              <div class="py-1">
-                <button
-                  v-for="col in toggleableColumns"
-                  :key="col.key"
-                  type="button"
-                  class="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm transition-colors"
-                  :class="visibleColumnsSet.has(col.key) ? 'text-text hover:bg-muted/60' : 'text-text-secondary/60 hover:bg-muted/40'"
-                  @click="toggleColumn(col.key)"
-                >
-                  <span>{{ col.label }}</span>
-                  <span
-                    class="flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors duration-200"
-                    :class="visibleColumnsSet.has(col.key) ? 'bg-primary' : 'bg-border'"
-                  >
-                    <span
-                      class="size-4 rounded-full bg-white shadow-sm transition-transform duration-200"
-                      :class="visibleColumnsSet.has(col.key) ? 'translate-x-4' : 'translate-x-0'"
-                    />
-                  </span>
-                </button>
-              </div>
-              <div class="border-border border-t" />
-              <button
-                type="button"
-                class="text-text-secondary hover:bg-muted/60 hover:text-text mt-0.5 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs transition-colors"
-                @click="resetColumnVisibility"
-              >
-                <AppIcon name="icon-[heroicons-outline--arrow-path]" :size="0.875" />
-                Reset defaults
-              </button>
-            </div>
-          </Transition>
-        </div>
       </div>
 
-      <!-- Right: pagination nav -->
-      <div v-if="showPagination" class="flex items-center gap-1.5">
+      <!-- Right: Pagination Nav -->
+      <div class="flex items-center gap-1.5 self-end sm:self-auto">
         <AppButton
           icon="icon-[heroicons-outline--chevron-left]"
-          tooltip="Previous"
-          variant="ghost"
+          variant="outline"
           size="sm"
           icon-only
           :disabled="!canGoPrev"
+          class="rounded-xl shadow-xs"
           @click="goToPrev"
         />
-        <template v-if="!serverPaginated">
-          <button
-            v-for="page in clientVisiblePages"
-            :key="page"
-            type="button"
-            class="flex size-8 items-center justify-center rounded-lg text-sm font-medium transition-colors"
-            :class="
-              page === clientPage
-                ? 'bg-primary text-white'
-                : 'text-text-secondary hover:bg-muted hover:text-text'
-            "
-            @click="goToPage(page)"
-          >
-            {{ page }}
-          </button>
-        </template>
-        <span v-else class="text-text px-2 text-sm font-medium tabular-nums">{{ props.pageNumber }}</span>
+        
+        <div class="flex items-center gap-1">
+          <template v-if="!serverPaginated">
+            <button
+              v-for="p in clientVisiblePages"
+              :key="p"
+              type="button"
+              class="flex size-8 items-center justify-center rounded-xl text-sm font-bold transition-all"
+              :class="
+                p === clientPage
+                  ? 'bg-primary text-white shadow-md shadow-primary/20'
+                  : 'text-text-secondary hover:bg-muted hover:text-text'
+              "
+              @click="goToPage(p)"
+            >
+              {{ p }}
+            </button>
+          </template>
+          <div v-else class="bg-muted/50 border-border flex h-8 items-center gap-2 rounded-xl border px-3 text-sm font-bold tabular-nums shadow-xs">
+            <span class="text-text-secondary uppercase tracking-widest text-[10px]">Page</span>
+            <span class="text-primary">{{ props.pageNumber }}</span>
+            <span class="text-text-secondary">/</span>
+            <span class="text-text">{{ props.totalPages || 1 }}</span>
+          </div>
+        </div>
+
         <AppButton
           icon="icon-[heroicons-outline--chevron-right]"
-          tooltip="Next"
-          variant="ghost"
+          variant="outline"
           size="sm"
           icon-only
           :disabled="!canGoNext"
+          class="rounded-xl shadow-xs"
           @click="goToNext"
         />
       </div>
     </div>
 
-    <!-- ÔöÇÔöÇ Truncate expand modal (kept for backward compat) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ -->
+    <!-- Expansion Modal -->
     <AppModal :is-open="truncateModalOpen" :title="truncateModalTitle" max-width="sm" @close="truncateModalOpen = false">
-      <p dir="auto" class="text-text whitespace-pre-wrap text-sm leading-relaxed">{{ truncateModalContent }}</p>
+      <p dir="auto" class="text-text whitespace-pre-wrap text-sm leading-relaxed p-4">{{ truncateModalContent }}</p>
     </AppModal>
   </div>
 </template>
@@ -315,7 +369,6 @@ import { onClickOutside } from '@vueuse/core'
 import { usePagination } from '../../composables/usePagination'
 import { useDebounce } from '../../composables/useDebounce'
 
-import AppSpinner from './AppSpinner.vue'
 import AppButton from './AppButton.vue'
 import AppIcon from './AppIcon.vue'
 import AppTooltip from './AppTooltip.vue'
@@ -337,34 +390,40 @@ interface Props {
   data: any[]
   loading?: boolean
   outlined?: boolean
+  compact?: boolean
   searchable?: boolean
   searchPlaceholder?: string
   paginated?: boolean
   itemsPerPage?: number
   emptyMessage?: string
-  loadingMessage?: string
-  ofLabel?: string
   rowKey?: string | ((row: any) => string | number)
+  // Server-side
   serverPaginated?: boolean
   pageNumber?: number
   pageSize?: number
   totalCount?: number
   totalPages?: number
+  // Column control
   showColumnToggle?: boolean
   columnsVisibilityKey?: string
   pageSizeOptions?: number[]
+  // Controlled Sort
+  sortKey?: string | null
+  sortOrder?: 'asc' | 'desc'
+  // Selection
+  selectable?: boolean
+  selected?: any[] // list of keys or rows
 }
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
   outlined: true,
+  compact: false,
   searchable: false,
-  searchPlaceholder: 'Search...',
+  searchPlaceholder: 'Quick search...',
   paginated: false,
   itemsPerPage: 10,
-  emptyMessage: 'No data available',
-  loadingMessage: 'Loading...',
-  ofLabel: 'of',
+  emptyMessage: 'No records found',
   rowKey: 'id',
   serverPaginated: false,
   pageNumber: 1,
@@ -373,80 +432,76 @@ const props = withDefaults(defineProps<Props>(), {
   totalPages: 1,
   showColumnToggle: false,
   columnsVisibilityKey: '',
-  pageSizeOptions: () => [10, 15, 25, 50],
+  pageSizeOptions: () => [10, 15, 25, 50, 100],
+  sortKey: null,
+  sortOrder: 'asc',
+  selectable: false,
+  selected: () => [],
 })
 
 const emit = defineEmits<{
   pageChange: [payload: { pageNumber: number; pageSize: number }]
   search: [query: string]
+  'update:sortKey': [key: string | null]
+  'update:sortOrder': [order: 'asc' | 'desc']
+  'update:selected': [rows: any[]]
 }>()
 
-// ÔöÇÔöÇ Refs ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+// ── State ────────────────────────────────────────────────────────────────────────────────────────────
 const searchInputRef = ref<HTMLInputElement | null>(null)
+const scrollContainerRef = ref<HTMLElement | null>(null)
 const searchQuery = ref('')
-const sortKey = ref<string | null>(null)
-const sortOrder = ref<'asc' | 'desc'>('asc')
-// Column toggle
+const internalSortKey = ref<string | null>(props.sortKey)
+const internalSortOrder = ref<'asc' | 'desc'>(props.sortOrder)
+const isAtEnd = ref(true)
+
+function handleScroll() {
+  if (!scrollContainerRef.value) return
+  const { scrollLeft, clientWidth, scrollWidth } = scrollContainerRef.value
+  // Allow 1px buffer for subpixel rendering
+  isAtEnd.value = scrollLeft + clientWidth >= scrollWidth - 1
+}
+
+// Initial check on mount/data change
+watch([() => props.data, scrollContainerRef], () => {
+  setTimeout(handleScroll, 50)
+}, { immediate: true })
+
+// Column toggle popover
 const showColumnMenu = ref(false)
 const columnToggleRef = ref<HTMLElement | null>(null)
+onClickOutside(columnToggleRef, () => { showColumnMenu.value = false })
 
-// Page size
+// Page size menu
 const showPageSizeMenu = ref(false)
 const pageSizeRef = ref<HTMLElement | null>(null)
+onClickOutside(pageSizeRef, () => { showPageSizeMenu.value = false })
 
-// Truncate modal (kept for backward compat ÔÇö truncate now uses tooltips)
+// Truncate expansion modal
 const truncateModalOpen = ref(false)
 const truncateModalTitle = ref('')
 const truncateModalContent = ref('')
 
-function openTruncateModal(title: string, content: string) {
-  truncateModalTitle.value = title
-  truncateModalContent.value = content
-  truncateModalOpen.value = true
-}
+// ── Sync External/Internal Sort ──────────────────────────────────────────────────────────────────────
+watch(() => props.sortKey, (newVal) => internalSortKey.value = newVal)
+watch(() => props.sortOrder, (newVal) => internalSortOrder.value = newVal)
 
-onClickOutside(columnToggleRef, () => { showColumnMenu.value = false })
-onClickOutside(pageSizeRef, () => { showPageSizeMenu.value = false })
+const sortKey = computed(() => props.serverPaginated ? props.sortKey : internalSortKey.value)
+const sortOrder = computed(() => props.serverPaginated ? props.sortOrder : internalSortOrder.value)
 
-// ÔöÇÔöÇ Skeleton rows ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
-const skeletonRows = computed(() => Math.min(props.itemsPerPage, 5))
+// ── Column Visibility Logic ──────────────────────────────────────────────────────────────────────────
+const STORAGE_PREFIX = 'app-table-cols-'
 
-// ÔöÇÔöÇ Column visibility ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
-const STORAGE_PREFIX = 'app-table-columns-'
-
-function loadColumnVisibility(): Record<string, boolean> {
+function loadSavedVisibility(): Record<string, boolean> {
   if (!props.columnsVisibilityKey) return {}
   try {
     const raw = localStorage.getItem(STORAGE_PREFIX + props.columnsVisibilityKey)
-    if (!raw) return {}
-    const parsed = JSON.parse(raw)
-    if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) return {}
-    const safe: Record<string, boolean> = Object.create(null)
-    for (const [key, value] of Object.entries(parsed)) {
-      if (typeof value === 'boolean') safe[key] = value
-    }
-    return safe
-  } catch {
-    return {}
-  }
+    return raw ? JSON.parse(raw) : {}
+  } catch { return {} }
 }
 
-function saveColumnVisibility(visibility: Record<string, boolean>) {
-  if (!props.columnsVisibilityKey) return
-  try {
-    localStorage.setItem(STORAGE_PREFIX + props.columnsVisibilityKey, JSON.stringify(visibility))
-  } catch { /* ignore */ }
-}
-
-const columnVisibility = ref<Record<string, boolean>>(loadColumnVisibility())
+const columnVisibility = ref<Record<string, boolean>>(loadSavedVisibility())
 const columnSavedHint = ref(false)
-let savedHintTimer: ReturnType<typeof setTimeout> | null = null
-
-function showSavedHint() {
-  columnSavedHint.value = true
-  if (savedHintTimer) clearTimeout(savedHintTimer)
-  savedHintTimer = setTimeout(() => { columnSavedHint.value = false }, 1500)
-}
 
 const toggleableColumns = computed(() => props.columns.filter((c) => c.hideable !== false))
 
@@ -466,169 +521,193 @@ const visibleColumnsSet = computed(() => {
 })
 
 const visibleColumns = computed(() => props.columns.filter((c) => visibleColumnsSet.value.has(c.key)))
-
-const visibleToggleableCount = computed(() =>
-  toggleableColumns.value.filter((c) => visibleColumnsSet.value.has(c.key)).length
-)
+const visibleToggleableCount = computed(() => toggleableColumns.value.filter((c) => visibleColumnsSet.value.has(c.key)).length)
 
 function toggleColumn(key: string) {
-  const currentlyVisible = visibleColumnsSet.value.has(key)
-  if (currentlyVisible && visibleColumnsSet.value.size <= 1) return
-  const nextVisibility = { ...columnVisibility.value, [key]: !currentlyVisible }
-  columnVisibility.value = nextVisibility
-  saveColumnVisibility(nextVisibility)
-  showSavedHint()
+  const isVisible = visibleColumnsSet.value.has(key)
+  if (isVisible && visibleColumnsSet.value.size <= 1) return // Keep at least one
+  
+  columnVisibility.value = { ...columnVisibility.value, [key]: !isVisible }
+  if (props.columnsVisibilityKey) {
+    localStorage.setItem(STORAGE_PREFIX + props.columnsVisibilityKey, JSON.stringify(columnVisibility.value))
+    columnSavedHint.value = true
+    setTimeout(() => columnSavedHint.value = false, 2000)
+  }
 }
 
 function resetColumnVisibility() {
   columnVisibility.value = {}
-  if (props.columnsVisibilityKey) {
-    try { localStorage.removeItem(STORAGE_PREFIX + props.columnsVisibilityKey) } catch { /* ignore */ }
-  }
-  showSavedHint()
+  if (props.columnsVisibilityKey) localStorage.removeItem(STORAGE_PREFIX + props.columnsVisibilityKey)
 }
 
-// ÔöÇÔöÇ Sort ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
-const isColumnSortable = (column: TableColumn): boolean => column.sortable === true
+// ── Selection Logic ──────────────────────────────────────────────────────────────────────────────────
+const isRowSelected = (row: any) => {
+  const key = getRowKey(row, 0)
+  return props.selected.some(s => (typeof s === 'object' ? getRowKey(s, 0) : s) === key)
+}
 
-const handleSort = (key: string) => {
-  if (sortKey.value === key) {
-    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+const isAllSelected = computed(() => {
+  if (displayData.value.length === 0) return false
+  return displayData.value.every(row => isRowSelected(row))
+})
+
+const isPartiallySelected = computed(() => {
+  const selectedCount = displayData.value.filter(row => isRowSelected(row)).length
+  return selectedCount > 0 && selectedCount < displayData.value.length
+})
+
+function toggleRowSelection(row: any) {
+  const key = getRowKey(row, 0)
+  let newSelected = [...props.selected]
+  
+  if (isRowSelected(row)) {
+    newSelected = newSelected.filter(s => (typeof s === 'object' ? getRowKey(s, 0) : s) !== key)
   } else {
-    sortKey.value = key
-    sortOrder.value = 'asc'
+    newSelected.push(props.rowKey === 'id' ? row.id : row)
+  }
+  emit('update:selected', newSelected)
+}
+
+function toggleSelectAll() {
+  if (isAllSelected.value) {
+    emit('update:selected', [])
+  } else {
+    emit('update:selected', [...displayData.value])
   }
 }
 
-// ÔöÇÔöÇ Row helpers ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+// ── Row Helpers ──────────────────────────────────────────────────────────────────────────────────────
 const getRowKey = (row: any, index: number): string | number => {
   if (typeof props.rowKey === 'function') return props.rowKey(row)
   return row[props.rowKey] ?? index
 }
 
 const getValue = (row: any, key: string): any => {
-  const keys = key.split('.')
-  let value = row
-  for (const k of keys) value = value?.[k]
-  return value ?? ''
+  return key.split('.').reduce((obj, k) => obj?.[k], row) ?? ''
 }
 
-const parseSortValue = (val: any): string | number | Date => {
-  if (val == null || val === '') return ''
-  if (typeof val === 'number' && !Number.isNaN(val)) return val
-  if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}/.test(val)) return new Date(val).getTime()
-  return String(val).toLowerCase()
+// ── Sorting ─────────────────────────────────────────────────────────────────────────────────────────
+const isColumnSortable = (col: TableColumn) => col.sortable !== false
+
+function handleSort(key: string) {
+  let nextOrder: 'asc' | 'desc' = 'asc'
+  let nextKey: string | null = key
+
+  if (sortKey.value === key) {
+    if (sortOrder.value === 'asc') nextOrder = 'desc'
+    else nextKey = null // Clear sort on third click
+  }
+
+  if (props.serverPaginated) {
+    emit('update:sortKey', nextKey)
+    emit('update:sortOrder', nextOrder)
+  } else {
+    internalSortKey.value = nextKey
+    internalSortOrder.value = nextOrder
+  }
 }
 
-// ÔöÇÔöÇ Data pipeline ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
-const filteredData = computed(() => {
+const parseSortVal = (v: any) => {
+  if (v == null || v === '') return ''
+  if (typeof v === 'number') return v
+  const d = Date.parse(v)
+  if (!isNaN(d)) return d
+  return String(v).toLowerCase()
+}
+
+// ── Data Processing ─────────────────────────────────────────────────────────────────────────────────
+const processedData = computed(() => {
+  if (props.serverPaginated) return props.data
+  
   let result = [...props.data]
+  
+  // Local Search
   if (props.searchable && searchQuery.value) {
     const q = searchQuery.value.toLowerCase()
-    result = result.filter((row) =>
-      props.columns.some((col) => String(getValue(row, col.key)).toLowerCase().includes(q))
+    result = result.filter(row => 
+      props.columns.some(col => String(getValue(row, col.key)).toLowerCase().includes(q))
     )
   }
-  if (sortKey.value) {
+
+  // Local Sort
+  if (internalSortKey.value) {
     result.sort((a, b) => {
-      const aVal = parseSortValue(getValue(a, sortKey.value!))
-      const bVal = parseSortValue(getValue(b, sortKey.value!))
-      if (aVal === bVal) return 0
-      const cmp = aVal < bVal ? -1 : 1
-      return sortOrder.value === 'asc' ? cmp : -cmp
+      const vA = parseSortVal(getValue(a, internalSortKey.value!))
+      const vB = parseSortVal(getValue(b, internalSortKey.value!))
+      if (vA === vB) return 0
+      const cmp = vA < vB ? -1 : 1
+      return internalSortOrder.value === 'asc' ? cmp : -cmp
     })
   }
+
   return result
 })
 
-// ÔöÇÔöÇ Client-side pagination (via usePagination) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
-const clientTotal = computed(() => filteredData.value.length)
-const clientItemsPerPage = computed(() => props.itemsPerPage)
-
+// ── Client Pagination ───────────────────────────────────────────────────────────────────────────────
 const clientPag = usePagination({
-  total: clientTotal,
-  pageSize: clientItemsPerPage,
+  total: computed(() => processedData.value.length),
+  pageSize: computed(() => props.itemsPerPage),
 })
 
-// Expose individual refs for clean template access
 const clientPage = clientPag.page
-const clientTotalPages = clientPag.totalPages
-const clientIsFirst = clientPag.isFirst
-const clientIsLast = clientPag.isLast
-const clientRange = clientPag.range
 const clientVisiblePages = clientPag.visiblePages
 
-const clientPaginatedData = computed(() =>
-  props.paginated ? clientPag.paginate(filteredData.value) : filteredData.value
-)
+const displayData = computed(() => {
+  if (props.serverPaginated) return props.data
+  return props.paginated ? clientPag.paginate(processedData.value) : processedData.value
+})
 
-const displayData = computed(() =>
-  props.serverPaginated ? props.data : clientPaginatedData.value
-)
-
-// ÔöÇÔöÇ Pagination display (unified client + server) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+// ── Unified Pagination Display ──────────────────────────────────────────────────────────────────────
 const showPagination = computed(() => {
   if (props.serverPaginated) return props.totalCount > 0
-  return props.paginated && clientTotalPages.value > 1
+  return props.paginated && processedData.value.length > props.itemsPerPage
 })
 
+const paginationTotal = computed(() => props.serverPaginated ? props.totalCount : processedData.value.length)
 const paginationStart = computed(() => {
-  if (props.serverPaginated) return props.totalCount === 0 ? 0 : (props.pageNumber - 1) * props.pageSize + 1
-  return clientRange.value.start
+  if (paginationTotal.value === 0) return 0
+  const page = props.serverPaginated ? props.pageNumber : clientPage.value
+  const size = props.serverPaginated ? props.pageSize : props.itemsPerPage
+  return (page - 1) * size + 1
 })
-
 const paginationEnd = computed(() => {
-  if (props.serverPaginated) return Math.min(props.pageNumber * props.pageSize, props.totalCount)
-  return clientRange.value.end
+  const size = props.serverPaginated ? props.pageSize : props.itemsPerPage
+  return Math.min(paginationStart.value + displayData.value.length - 1, paginationTotal.value)
 })
 
-const paginationTotal = computed(() =>
-  props.serverPaginated ? props.totalCount : clientTotal.value
-)
+const canGoPrev = computed(() => (props.serverPaginated ? props.pageNumber : clientPage.value) > 1)
+const canGoNext = computed(() => {
+  const current = props.serverPaginated ? props.pageNumber : clientPage.value
+  const total = props.serverPaginated ? props.totalPages : clientPag.totalPages.value
+  return current < total
+})
 
-const canGoPrev = computed(() =>
-  props.serverPaginated ? props.pageNumber > 1 : !clientIsFirst.value
-)
-
-const canGoNext = computed(() =>
-  props.serverPaginated ? props.pageNumber < props.totalPages : !clientIsLast.value
-)
-
-const goToPage = (p: number) => clientPag.goTo(p)
-
-const goToPrev = () => {
-  if (props.serverPaginated) {
-    if (props.pageNumber > 1) emit('pageChange', { pageNumber: props.pageNumber - 1, pageSize: props.pageSize })
-  } else {
-    clientPag.prev()
-  }
+function goToPrev() {
+  if (props.serverPaginated) emit('pageChange', { pageNumber: props.pageNumber - 1, pageSize: props.pageSize })
+  else clientPag.prev()
 }
 
-const goToNext = () => {
-  if (props.serverPaginated) {
-    if (props.pageNumber < props.totalPages) emit('pageChange', { pageNumber: props.pageNumber + 1, pageSize: props.pageSize })
-  } else {
-    clientPag.next()
-  }
+function goToNext() {
+  if (props.serverPaginated) emit('pageChange', { pageNumber: props.pageNumber + 1, pageSize: props.pageSize })
+  else clientPag.next()
 }
+
+function goToPage(p: number) { clientPag.goTo(p) }
 
 function selectPageSize(size: number) {
   showPageSizeMenu.value = false
   emit('pageChange', { pageNumber: 1, pageSize: size })
 }
 
-// ÔöÇÔöÇ Watchers ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
-watch(() => props.data, () => { clientPag.first() })
-watch(searchQuery, () => { clientPag.first() })
-
+// ── Watchers ─────────────────────────────────────────────────────────────────────────────────────────
+watch(() => props.data, () => { if (!props.serverPaginated) clientPag.first() })
 const debouncedSearch = useDebounce(searchQuery, 500)
-watch(debouncedSearch, (q) => {
-  if (props.serverPaginated) emit('search', q ?? '')
-})
+watch(debouncedSearch, (q) => { if (props.serverPaginated) emit('search', q ?? '') })
+
+const skeletonRows = computed(() => Math.min(props.serverPaginated ? props.pageSize : props.itemsPerPage, 10))
 </script>
 
 <style scoped>
-/* Sticky actions column */
 .sticky-actions-th,
 .sticky-actions-td {
   position: sticky;
@@ -637,7 +716,7 @@ watch(debouncedSearch, (q) => {
 
 .sticky-actions-th {
   z-index: 11;
-  background: color-mix(in srgb, var(--color-muted, #f3f4f6) 60%, transparent);
+  background: color-mix(in srgb, var(--color-muted, #f3f4f6) 80%, transparent);
 }
 
 .sticky-actions-td {
@@ -649,9 +728,8 @@ tr:hover > .sticky-actions-td {
   background: color-mix(in srgb, var(--color-primary, #3b82f6) 3%, var(--color-surface, #fff));
 }
 
-/* Fade-in edge for sticky column */
-.sticky-actions-th::before,
-.sticky-actions-td::before {
+.has-sticky-shadow .sticky-actions-th::before,
+.has-sticky-shadow .sticky-actions-td::before {
   content: '';
   position: absolute;
   top: 0;
@@ -659,10 +737,9 @@ tr:hover > .sticky-actions-td {
   bottom: 0;
   width: 1rem;
   pointer-events: none;
-  background: linear-gradient(to right, transparent, rgb(0 0 0 / 0.04));
+  background: linear-gradient(to right, transparent, rgb(0 0 0 / 0.03));
 }
 
-/* Row data hover lift for tooltips */
 .table-row-data {
   position: relative;
   z-index: 0;
@@ -670,5 +747,26 @@ tr:hover > .sticky-actions-td {
 
 .table-row-data:hover {
   z-index: 12;
+}
+
+.table-compact td, 
+.table-compact th {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
 }
 </style>

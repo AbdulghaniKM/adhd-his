@@ -3,12 +3,26 @@
     class="border-border bg-surface/80 sticky top-0 z-50 flex h-14 items-center justify-between border-b px-6 backdrop-blur-md"
   >
     <!-- Logo -->
-    <div class="flex items-center gap-2.5">
-      <div class="bg-primary flex size-7 items-center justify-center rounded-lg">
+    <router-link to="/" class="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+      <div class="bg-primary flex size-7 items-center justify-center rounded-lg shadow-sm">
         <span class="icon-[mdi--hospital-box] text-sm text-white" />
       </div>
       <AppText variant="span" size="sm" weight="bold" color="text">ADHDx</AppText>
-    </div>
+    </router-link>
+
+    <!-- Navigation (Centered) -->
+    <nav v-if="isAdmin" class="hidden items-center gap-1 md:flex">
+      <router-link
+        v-for="link in adminLinks"
+        :key="link.to"
+        :to="link.to"
+        class="text-text-secondary hover:text-text hover:bg-muted relative flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all"
+        active-class="bg-primary/10 text-primary!"
+      >
+        <span :class="link.icon" class="text-sm" />
+        {{ link.label }}
+      </router-link>
+    </nav>
 
     <!-- Right side -->
     <div class="flex items-center gap-3">
@@ -70,9 +84,11 @@
 </template>
 
 <script setup lang="ts">
+  import { computed } from 'vue';
   import { useTheme } from '../composables/useTheme';
   import { AuthStore } from '../stores/auth.store';
   import { useRouter } from 'vue-router';
+  import { AppRole } from '../types/enums.types';
   import AppText from './ui/AppText.vue';
   import AppButton from './ui/AppButton.vue';
   import AppTooltip from './ui/AppTooltip.vue';
@@ -80,6 +96,23 @@
   const { isDark, toggleTheme } = useTheme();
   const store = AuthStore();
   const router = useRouter();
+
+  const isAdmin = computed(() => 
+    store.role === AppRole.ADMIN || 
+    store.role === AppRole.SUPER_ADMIN ||
+    String(store.role).toLowerCase().includes('admin')
+  );
+
+  const adminLinks = [
+    { label: 'Dashboard', to: '/admin', icon: 'icon-[heroicons-outline--home]' },
+    { label: 'Admins', to: '/admin/admins', icon: 'icon-[heroicons-outline--shield-check]' },
+    { label: 'Doctors', to: '/admin/doctors', icon: 'icon-[heroicons-outline--user-group]' },
+    { label: 'Patients', to: '/admin/patients', icon: 'icon-[heroicons-outline--users]' },
+    { label: 'Staff', to: '/admin/lab-techs', icon: 'icon-[heroicons-outline--briefcase]' },
+    { label: 'Units', to: '/admin/labs', icon: 'icon-[heroicons-outline--beaker]' },
+    { label: 'Depts', to: '/admin/departments', icon: 'icon-[heroicons-outline--building-office]' },
+    { label: 'Calendar', to: '/admin/appointments', icon: 'icon-[heroicons-outline--calendar]' },
+  ];
 
   const handleLogout = () => {
     store.clearSession();

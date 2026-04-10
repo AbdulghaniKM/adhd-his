@@ -1,0 +1,252 @@
+<template>
+  <div class="space-y-6 p-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-text">Patient Management</h1>
+        <p class="text-sm text-text-secondary">Register and manage patient records</p>
+      </div>
+      <AppButton
+        label="Register Patient"
+        icon="icon-[heroicons-outline--user-plus]"
+        @click="openCreateModal"
+      />
+    </div>
+
+    <AppTable
+      v-model:selected="selectedPatients"
+      :columns="columns"
+      :data="patientStore.patients"
+      :loading="patientStore.loading"
+      searchable
+      selectable
+      show-column-toggle
+      columns-visibility-key="patient-list"
+      search-placeholder="Search patients..."
+      server-paginated
+      :page-number="patientStore.pageNumber"
+      :page-size="patientStore.pageSize"
+      :total-count="patientStore.totalCount"
+      :total-pages="patientStore.totalPages"
+      @page-change="handlePageChange"
+      @search="handleSearch"
+    >
+      <template #cell-name="{ row }">
+        <div class="flex items-center gap-3">
+          <div class="size-8 overflow-hidden rounded-full bg-primary/10">
+            <img v-if="row.imageUrl" :src="row.imageUrl" alt="" class="size-full object-cover" />
+            <div v-else class="flex size-full items-center justify-center text-xs font-bold text-primary">
+              {{ row.firstName[0] }}{{ row.lastName[0] }}
+            </div>
+          </div>
+          <span class="font-medium text-text">{{ row.firstName }} {{ row.lastName }}</span>
+        </div>
+      </template>
+
+      <template #cell-status="{ value }">
+        <span
+          class="rounded-full px-2 py-1 text-xs font-medium"
+          :class="statusClasses[value] || 'bg-muted text-text-secondary'"
+        >
+          {{ mapEnum(value) }}
+        </span>
+      </template>
+
+      <template #cell-actions="{ row }">
+        <div class="flex items-center gap-2">
+          <AppButton
+            variant="ghost"
+            size="sm"
+            icon="icon-[heroicons-outline--pencil-square]"
+            icon-only
+            tooltip="Edit"
+            @click="openEditModal(row)"
+          />
+          <AppButton
+            variant="ghost"
+            size="sm"
+            icon="icon-[heroicons-outline--trash]"
+            icon-only
+            class="text-error hover:text-error"
+            tooltip="Delete"
+            @click="confirmDelete(row)"
+          />
+        </div>
+      </template>
+    </AppTable>
+
+    <!-- Create/Edit Modal -->
+    <AppModal
+      :is-open="isModalOpen"
+      :title="editingPatient ? 'Edit Patient Profile' : 'Register New Patient'"
+      max-width="lg"
+      @close="isModalOpen = false"
+    >
+      <AppForm
+        v-model="formData"
+        :fields="formFields"
+        :is-submitting="patientStore.loading"
+        @submitted="handleSubmit"
+      />
+    </AppModal>
+
+    <!-- Delete Confirmation -->
+    <ConfirmDangerModal
+      :is-open="isDeleteModalOpen"
+      title="Delete Patient Record"
+      :message="`Are you sure you want to delete ${patientToDelete?.firstName}'s record? This cannot be undone.`"
+      @close="isDeleteModalOpen = false"
+      @confirm="handleDelete"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, computed } from 'vue';
+import { usePatientStore } from '../../stores/patient.store';
+import { useDoctorStore } from '../../stores/doctor.store';
+import AppTable from '../../components/ui/AppTable.vue';
+import AppButton from '../../components/ui/AppButton.vue';
+import AppModal from '../../components/ui/AppModal.vue';
+import AppForm from '../../components/ui/Fields/AppForm.vue';
+import ConfirmDangerModal from '../../components/ui/ConfirmDangerModal.vue';
+import { useToast } from '../../composables/useToast';
+import { mapEnum } from '../../utils/enum-mapper';
+import { Gender, BloodType, PatientStatus } from '../../types/enums.types';
+import type { TableColumn } from '../../components/ui/AppTable.vue';
+import type { FormFieldRow } from '../../types/form';
+
+const patientStore = usePatientStore();
+const doctorStore = useDoctorStore();
+const { success, error } = useToast();
+
+const columns: TableColumn[] = [
+  { key: 'name', label: 'Patient', sortable: true },
+  { key: 'email', label: 'Email', sortable: true },
+  { key: 'phone', label: 'Phone' },
+  { key: 'birthDate', label: 'Birth Date', defaultHidden: true },
+  { key: 'gender', label: 'Gender', defaultHidden: true },
+  { key: 'bloodType', label: 'Blood Type', defaultHidden: true },
+  { key: 'status', label: 'Status' },
+  { key: 'primaryDoctor.firstName', label: 'Primary Doctor', defaultHidden: true },
+  { key: 'createdAt', label: 'Registered', defaultHidden: true },
+  { key: 'actions', label: 'Actions', class: 'text-end' },
+];
+
+const selectedPatients = ref<any[]>([]);
+
+const statusClasses: Record<number, string> = {
+  [PatientStatus.IN_PATIENT]: 'bg-amber-500/10 text-amber-500',
+  [PatientStatus.OUT_PATIENT]: 'bg-green-500/10 text-green-500',
+  [PatientStatus.NOT_SET]: 'bg-muted text-text-secondary',
+};
+
+const doctorOptions = computed(() =>
+  doctorStore.doctors.map(d => ({ label: `Dr. ${d.firstName} ${d.lastName}`, value: d.id }))
+);
+
+const formFields = computed<FormFieldRow[]>(() => [
+  [
+    { key: 'FirstName', label: 'First Name', type: 'text' },
+    { key: 'LastName', label: 'Last Name', type: 'text' },
+  ],
+  [
+    { key: 'Email', label: 'Email', type: 'email' },
+    { key: 'Phone', label: 'Phone', type: 'phone' },
+  ],
+  [
+    { key: 'BirthDate', label: 'Birth Date', type: 'date' },
+    { key: 'Gender', label: 'Gender', type: 'select', items: [
+      { label: 'Male', value: Gender.MALE },
+      { label: 'Female', value: Gender.FEMALE }
+    ]},
+  ],
+  [
+    { key: 'BloodType', label: 'Blood Type', type: 'select', items: Object.values(BloodType).map(b => ({ label: b, value: b })) },
+    { key: 'Status', label: 'Status', type: 'select', items: [
+      { label: 'In Patient', value: PatientStatus.IN_PATIENT },
+      { label: 'Out Patient', value: PatientStatus.OUT_PATIENT }
+    ]},
+  ],
+  [
+    { key: 'PrimaryDoctorId', label: 'Primary Doctor', type: 'select', items: doctorOptions.value },
+  ],
+  [
+    { key: 'Address', label: 'Address', type: 'textarea', rows: 2 },
+  ],
+]);
+
+const isModalOpen = ref(false);
+const editingPatient = ref<any>(null);
+const formData = ref<any>({});
+
+const isDeleteModalOpen = ref(false);
+const patientToDelete = ref<any>(null);
+
+onMounted(() => {
+  patientStore.fetchPatients();
+  doctorStore.fetchDoctors();
+});
+
+const handlePageChange = (payload: any) => {
+  patientStore.fetchPatients(payload);
+};
+
+const handleSearch = (query: string) => {
+  patientStore.fetchPatients({ FirstName: query, PageNumber: 1 });
+};
+
+const openCreateModal = () => {
+  editingPatient.value = null;
+  formData.value = { Gender: Gender.MALE, BloodType: BloodType.O_POSITIVE, Status: PatientStatus.OUT_PATIENT };
+  isModalOpen.value = true;
+};
+
+const openEditModal = (patient: any) => {
+  editingPatient.value = patient;
+  formData.value = {
+    FirstName: patient.firstName,
+    LastName: patient.lastName,
+    Email: patient.email,
+    Phone: patient.phone,
+    BirthDate: patient.birthDate?.split('T')[0],
+    Gender: patient.gender,
+    BloodType: patient.bloodType,
+    Status: patient.status,
+    PrimaryDoctorId: patient.primaryDoctorId,
+    Address: patient.address,
+  };
+  isModalOpen.value = true;
+};
+
+const handleSubmit = async (data: any) => {
+  let res;
+  if (editingPatient.value) {
+    res = await patientStore.updatePatient(editingPatient.value.id, data);
+  } else {
+    res = await patientStore.createPatient(data);
+  }
+
+  if (res) {
+    success(editingPatient.value ? 'Patient updated' : 'Patient registered');
+    isModalOpen.value = false;
+  } else {
+    error(patientStore.error || 'Operation failed');
+  }
+};
+
+const confirmDelete = (patient: any) => {
+  patientToDelete.value = patient;
+  isDeleteModalOpen.value = true;
+};
+
+const handleDelete = async () => {
+  if (!patientToDelete.value) return;
+  const res = await patientStore.deletePatient(patientToDelete.value.id);
+  if (res) {
+    success('Patient record removed');
+    isDeleteModalOpen.value = false;
+  } else {
+    error(patientStore.error || 'Delete failed');
+  }
+};
+</script>

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { getApiUrl } from '../config/env';
-import { getAuthToken, clearAuthSession } from '../composables/useAuth';
+import { AuthStore } from '../stores/auth.store';
+import { pinia } from '../main';
 
 const api = axios.create({
   baseURL: getApiUrl(),
@@ -16,7 +17,10 @@ const api = axios.create({
 // ── Request: attach auth token ──────────────────────────────────────
 api.interceptors.request.use(
   (config) => {
-    const token = getAuthToken();
+    // We need the store instance. Since this is outside setup, 
+    // we use the pinia instance if available.
+    const store = AuthStore(pinia); 
+    const token = store.token;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -30,7 +34,8 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      clearAuthSession();
+      const store = AuthStore(pinia);
+      store.clearSession();
       // Optionally redirect: window.location.href = '/login';
     }
     return Promise.reject(error);

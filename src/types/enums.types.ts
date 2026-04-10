@@ -8,66 +8,66 @@ export enum AppRole {
 }
 
 export enum Gender {
-  NOT_SET = 'NotSet',
-  MALE = 'Male',
-  FEMALE = 'Female',
+  NOT_SET = 0,
+  MALE = 1,
+  FEMALE = 2,
 }
 
 export enum WeekDays {
-  SATURDAY = 'Saturday',
-  SUNDAY = 'Sunday',
-  MONDAY = 'Monday',
-  TUESDAY = 'Tuesday',
-  WEDNESDAY = 'Wednesday',
-  THURSDAY = 'Thursday',
-  FRIDAY = 'Friday',
+  SUNDAY = 0,
+  MONDAY = 1,
+  TUESDAY = 2,
+  WEDNESDAY = 3,
+  THURSDAY = 4,
+  FRIDAY = 5,
+  SATURDAY = 6,
 }
 
 export enum BloodType {
-  A_POSITIVE = 'APositive',
-  A_NEGATIVE = 'ANegative',
-  B_POSITIVE = 'BPositive',
-  B_NEGATIVE = 'BNegative',
-  AB_POSITIVE = 'ABPositive',
-  AB_NEGATIVE = 'ABNegative',
-  O_POSITIVE = 'OPositive',
-  O_NEGATIVE = 'ONegative',
+  A_POSITIVE = 0,
+  A_NEGATIVE = 1,
+  B_POSITIVE = 2,
+  B_NEGATIVE = 3,
+  AB_POSITIVE = 4,
+  AB_NEGATIVE = 5,
+  O_POSITIVE = 6,
+  O_NEGATIVE = 7,
 }
 
 export enum PatientStatus {
-  NOT_SET = 'NotSet',
-  IN_PATIENT = 'InPatient',
-  OUT_PATIENT = 'OutPatient',
+  NOT_SET = 0,
+  IN_PATIENT = 1,
+  OUT_PATIENT = 2,
 }
 
 export enum AlergySeverity {
-  MILD = 'Mild',
-  MODERATE = 'Moderate',
-  SEVERE = 'Severe',
+  MILD = 0,
+  MODERATE = 1,
+  SEVERE = 2,
 }
 
 export enum AppointmentType {
-  IN_PERSON = 'InPerson',
-  ONLINE = 'Online',
+  IN_PERSON = 0,
+  ONLINE = 1,
 }
 
 export enum AppointmentStatus {
-  SCHEDULED = 'Scheduled',
-  CONFIRMED = 'Confirmed',
-  CHECKED_IN = 'CheckedIn',
-  CHECKED_OUT = 'CheckedOut',
-  CANCELLED = 'Cancelled',
+  SCHEDULED = 0,
+  CONFIRMED = 1,
+  CHECKED_IN = 2,
+  CHECKED_OUT = 3,
+  CANCELLED = 4,
 }
 
 export enum EEGTestStatus {
-  ORDERED = 'Ordered',
-  IN_PROGRESS = 'InProgress',
-  COMPLETED = 'Completed',
-  ANALYZED = 'Analyzed',
-  CANCELLED = 'Cancelled',
+  ORDERED = 0,
+  IN_PROGRESS = 1,
+  COMPLETED = 2,
+  ANALYZED = 3,
+  CANCELLED = 4,
 }
 
 export enum ADHDPrediction {
-  ADHD = 'ADHD',
-  CONTROL = 'Control',
+  ADHD = 0,
+  CONTROL = 1,
 }
