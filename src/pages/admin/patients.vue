@@ -2,8 +2,8 @@
   <div class="space-y-6 p-6">
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-text">Patient Management</h1>
-        <p class="text-sm text-text-secondary">Register and manage patient records</p>
+        <h1 class="text-text text-2xl font-bold">Patient Management</h1>
+        <p class="text-text-secondary text-sm">Register and manage patient records</p>
       </div>
       <AppButton
         label="Register Patient"
@@ -34,13 +34,16 @@
     >
       <template #cell-name="{ row }">
         <div class="flex items-center gap-3">
-          <div class="size-8 overflow-hidden rounded-full bg-primary/10">
+          <div class="bg-primary/10 size-8 overflow-hidden rounded-full">
             <img v-if="row.imageUrl" :src="row.imageUrl" alt="" class="size-full object-cover" />
-            <div v-else class="flex size-full items-center justify-center text-xs font-bold text-primary">
+            <div
+              v-else
+              class="text-primary flex size-full items-center justify-center text-xs font-bold"
+            >
               {{ row.firstName[0] }}{{ row.lastName[0] }}
             </div>
           </div>
-          <span class="font-medium text-text">{{ row.firstName }} {{ row.lastName }}</span>
+          <span class="text-text font-medium">{{ row.firstName }} {{ row.lastName }}</span>
         </div>
       </template>
 
@@ -137,169 +140,203 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
-import { usePatientStore } from '../../stores/patient.store';
-import { useDoctorStore } from '../../stores/doctor.store';
-import AppTable from '../../components/ui/AppTable.vue';
-import AppButton from '../../components/ui/AppButton.vue';
-import AppModal from '../../components/ui/AppModal.vue';
-import AppForm from '../../components/ui/Fields/AppForm.vue';
-import ConfirmDangerModal from '../../components/ui/ConfirmDangerModal.vue';
-import { useToast } from '../../composables/useToast';
-import { mapPatientStatus, mapGender, mapBloodType } from '../../utils/enum-mapper';
-import { formatDate, formatDateTime } from '../../utils/format-date';
-import { Gender, BloodType, PatientStatus } from '../../types/enums.types';
-import type { TableColumn } from '../../components/ui/AppTable.vue';
-import type { FormFieldRow } from '../../types/form';
+  import { ref, onMounted, computed } from 'vue';
+  import { usePatientStore } from '../../stores/patient.store';
+  import { useDoctorStore } from '../../stores/doctor.store';
+  import AppTable from '../../components/ui/AppTable.vue';
+  import AppButton from '../../components/ui/AppButton.vue';
+  import AppModal from '../../components/ui/AppModal.vue';
+  import AppForm from '../../components/ui/Fields/AppForm.vue';
+  import ConfirmDangerModal from '../../components/ui/ConfirmDangerModal.vue';
+  import { useToast } from '../../composables/useToast';
+  import { mapPatientStatus, mapGender, mapBloodType } from '../../utils/enum-mapper';
+  import { formatDate } from '../../utils/format-date';
+  import { Gender, BloodType, PatientStatus } from '../../types/enums.types';
+  import type { TableColumn } from '../../components/ui/AppTable.vue';
+  import type { FormFieldRow } from '../../types/form';
 
-const patientStore = usePatientStore();
-const doctorStore = useDoctorStore();
-const { success, error } = useToast();
+  const patientStore = usePatientStore();
+  const doctorStore = useDoctorStore();
+  const { success, error } = useToast();
 
-const columns: TableColumn[] = [
-  { 
-    key: 'name', 
-    label: 'Patient', 
-    sortable: true,
-    exportFormatter: (row) => `${row.firstName} ${row.lastName}`
-  },
-  { key: 'email', label: 'Email', sortable: true },
-  { key: 'phone', label: 'Phone' },
-  { key: 'birthDate', label: 'Birth Date', defaultHidden: true, formatter: formatDate },
-  { key: 'gender', label: 'Gender', defaultHidden: true, exportFormatter: (row) => mapGender(row.gender) },
-  { key: 'bloodType', label: 'Blood Type', defaultHidden: true, exportFormatter: (row) => mapBloodType(row.bloodType) },
-  { key: 'status', label: 'Status', exportFormatter: (row) => mapPatientStatus(row.status) },
-  { key: 'primaryDoctor.firstName', label: 'Primary Doctor', defaultHidden: true },
-  { key: 'createdAt', label: 'Registered', defaultHidden: true, formatter: formatDateTime },
-  { key: 'actions', label: 'Actions', class: 'text-end' },
-];
+  const columns: TableColumn[] = [
+    {
+      key: 'name',
+      label: 'Patient',
+      sortable: true,
+      exportFormatter: (row) => `${row.firstName} ${row.lastName}`,
+    },
+    { key: 'email', label: 'Email', sortable: true },
+    { key: 'phone', label: 'Phone' },
+    { key: 'birthDate', label: 'Birth Date', defaultHidden: true, formatter: formatDate },
+    {
+      key: 'gender',
+      label: 'Gender',
+      defaultHidden: true,
+      exportFormatter: (row) => mapGender(row.gender),
+    },
+    {
+      key: 'bloodType',
+      label: 'Blood Type',
+      defaultHidden: true,
+      exportFormatter: (row) => mapBloodType(row.bloodType),
+    },
+    { key: 'status', label: 'Status', exportFormatter: (row) => mapPatientStatus(row.status) },
+    { key: 'primaryDoctor.firstName', label: 'Primary Doctor', defaultHidden: true },
+    { key: 'createdAt', label: 'Registered', defaultHidden: true, formatter: formatDate },
+    { key: 'actions', label: 'Actions', class: 'text-end' },
+  ];
 
-const selectedPatients = ref<any[]>([]);
-const isHardDelete = ref(false);
+  const selectedPatients = ref<any[]>([]);
+  const isHardDelete = ref(false);
 
-const statusClasses: Record<number, string> = {
-  [PatientStatus.IN_PATIENT]: 'bg-amber-500/10 text-amber-500',
-  [PatientStatus.OUT_PATIENT]: 'bg-green-500/10 text-green-500',
-  [PatientStatus.NOT_SET]: 'bg-muted text-text-secondary',
-};
-
-const doctorOptions = computed(() =>
-  doctorStore.doctors.map(d => ({ label: `Dr. ${d.firstName} ${d.lastName}`, value: d.id }))
-);
-
-const formFields = computed<FormFieldRow[]>(() => [
-  [
-    { key: 'FirstName', label: 'First Name', type: 'text' },
-    { key: 'LastName', label: 'Last Name', type: 'text' },
-  ],
-  [
-    { key: 'Email', label: 'Email', type: 'email' },
-    { key: 'Phone', label: 'Phone', type: 'phone' },
-  ],
-  [
-    { key: 'BirthDate', label: 'Birth Date', type: 'date' },
-    { key: 'Gender', label: 'Gender', type: 'select', items: [
-      { label: 'Male', value: Gender.MALE },
-      { label: 'Female', value: Gender.FEMALE }
-    ]},
-  ],
-  [
-    { key: 'BloodType', label: 'Blood Type', type: 'select', items: Object.values(BloodType).map(b => ({ label: b, value: b })) },
-    { key: 'Status', label: 'Status', type: 'select', items: [
-      { label: 'In Patient', value: PatientStatus.IN_PATIENT },
-      { label: 'Out Patient', value: PatientStatus.OUT_PATIENT }
-    ]},
-  ],
-  [
-    { key: 'PrimaryDoctorId', label: 'Primary Doctor', type: 'select', items: doctorOptions.value },
-  ],
-  [
-    { key: 'Address', label: 'Address', type: 'textarea', rows: 2 },
-  ],
-]);
-
-const isModalOpen = ref(false);
-const editingPatient = ref<any>(null);
-const formData = ref<any>({});
-
-const isDeleteModalOpen = ref(false);
-const patientToDelete = ref<any>(null);
-
-onMounted(() => {
-  patientStore.fetchPatients();
-  doctorStore.fetchDoctors();
-});
-
-const handlePageChange = (payload: any) => {
-  patientStore.fetchPatients(payload);
-};
-
-const handleSearch = (query: string) => {
-  patientStore.fetchPatients({ FirstName: query, PageNumber: 1 });
-};
-
-const openCreateModal = () => {
-  editingPatient.value = null;
-  formData.value = { Gender: Gender.MALE, BloodType: BloodType.O_POSITIVE, Status: PatientStatus.OUT_PATIENT };
-  isModalOpen.value = true;
-};
-
-const openEditModal = (patient: any) => {
-  editingPatient.value = patient;
-  formData.value = {
-    FirstName: patient.firstName,
-    LastName: patient.lastName,
-    Email: patient.email,
-    Phone: patient.phone,
-    BirthDate: patient.birthDate?.split('T')[0],
-    Gender: patient.gender,
-    BloodType: patient.bloodType,
-    Status: patient.status,
-    PrimaryDoctorId: patient.primaryDoctorId,
-    Address: patient.address,
+  const statusClasses: Record<number, string> = {
+    [PatientStatus.IN_PATIENT]: 'bg-amber-500/10 text-amber-500',
+    [PatientStatus.OUT_PATIENT]: 'bg-green-500/10 text-green-500',
+    [PatientStatus.NOT_SET]: 'bg-muted text-text-secondary',
   };
-  isModalOpen.value = true;
-};
 
-const handleSubmit = async (data: any) => {
-  let res;
-  if (editingPatient.value) {
-    res = await patientStore.updatePatient(editingPatient.value.id, data);
-  } else {
-    res = await patientStore.createPatient(data);
-  }
+  const doctorOptions = computed(() =>
+    doctorStore.doctors.map((d) => ({ label: `Dr. ${d.firstName} ${d.lastName}`, value: d.id })),
+  );
 
-  if (res) {
-    success(editingPatient.value ? 'Patient updated' : 'Patient registered');
-    isModalOpen.value = false;
-  } else {
-    error(patientStore.error || 'Operation failed');
-  }
-};
+  const formFields = computed<FormFieldRow[]>(() => [
+    [
+      { key: 'FirstName', label: 'First Name', type: 'text' },
+      { key: 'LastName', label: 'Last Name', type: 'text' },
+    ],
+    [
+      { key: 'Email', label: 'Email', type: 'email' },
+      { key: 'Phone', label: 'Phone', type: 'phone' },
+    ],
+    [
+      { key: 'BirthDate', label: 'Birth Date', type: 'date' },
+      {
+        key: 'Gender',
+        label: 'Gender',
+        type: 'select',
+        items: [
+          { label: 'Male', value: Gender.MALE },
+          { label: 'Female', value: Gender.FEMALE },
+        ],
+      },
+    ],
+    [
+      {
+        key: 'BloodType',
+        label: 'Blood Type',
+        type: 'select',
+        items: Object.values(BloodType).map((b) => ({ label: b, value: b })),
+      },
+      {
+        key: 'Status',
+        label: 'Status',
+        type: 'select',
+        items: [
+          { label: 'In Patient', value: PatientStatus.IN_PATIENT },
+          { label: 'Out Patient', value: PatientStatus.OUT_PATIENT },
+        ],
+      },
+    ],
+    [
+      {
+        key: 'PrimaryDoctorId',
+        label: 'Primary Doctor',
+        type: 'select',
+        items: doctorOptions.value,
+      },
+    ],
+    [{ key: 'Address', label: 'Address', type: 'textarea', rows: 2 }],
+  ]);
 
-const confirmDelete = (patient: any, isHard = false) => {
-  patientToDelete.value = patient;
-  isHardDelete.value = isHard;
-  isDeleteModalOpen.value = true;
-};
+  const isModalOpen = ref(false);
+  const editingPatient = ref<any>(null);
+  const formData = ref<any>({});
 
-const handleDelete = async () => {
-  if (!patientToDelete.value) return;
-  const res = await patientStore.deletePatient(patientToDelete.value.id, isHardDelete.value);
-  if (res) {
-    success(isHardDelete.value ? 'Patient record permanently deleted' : 'Patient record archived');
-    isDeleteModalOpen.value = false;
-  } else {
-    error(patientStore.error || 'Delete failed');
-  }
-};
+  const isDeleteModalOpen = ref(false);
+  const patientToDelete = ref<any>(null);
 
-const handleRestore = async (patient: any) => {
-  const res = await patientStore.restorePatient(patient.id);
-  if (res) {
-    success('Patient record restored');
-  } else {
-    error(patientStore.error || 'Restore failed');
-  }
-};
+  onMounted(() => {
+    patientStore.fetchPatients();
+    doctorStore.fetchDoctors();
+  });
+
+  const handlePageChange = (payload: any) => {
+    patientStore.fetchPatients(payload);
+  };
+
+  const handleSearch = (query: string) => {
+    patientStore.fetchPatients({ FirstName: query, PageNumber: 1 });
+  };
+
+  const openCreateModal = () => {
+    editingPatient.value = null;
+    formData.value = {
+      Gender: Gender.MALE,
+      BloodType: BloodType.O_POSITIVE,
+      Status: PatientStatus.OUT_PATIENT,
+    };
+    isModalOpen.value = true;
+  };
+
+  const openEditModal = (patient: any) => {
+    editingPatient.value = patient;
+    formData.value = {
+      FirstName: patient.firstName,
+      LastName: patient.lastName,
+      Email: patient.email,
+      Phone: patient.phone,
+      BirthDate: patient.birthDate?.split('T')[0],
+      Gender: patient.gender,
+      BloodType: patient.bloodType,
+      Status: patient.status,
+      PrimaryDoctorId: patient.primaryDoctorId,
+      Address: patient.address,
+    };
+    isModalOpen.value = true;
+  };
+
+  const handleSubmit = async (data: any) => {
+    let res;
+    if (editingPatient.value) {
+      res = await patientStore.updatePatient(editingPatient.value.id, data);
+    } else {
+      res = await patientStore.createPatient(data);
+    }
+
+    if (res) {
+      success(editingPatient.value ? 'Patient updated' : 'Patient registered');
+      isModalOpen.value = false;
+    } else {
+      error(patientStore.error || 'Operation failed');
+    }
+  };
+
+  const confirmDelete = (patient: any, isHard = false) => {
+    patientToDelete.value = patient;
+    isHardDelete.value = isHard;
+    isDeleteModalOpen.value = true;
+  };
+
+  const handleDelete = async () => {
+    if (!patientToDelete.value) return;
+    const res = await patientStore.deletePatient(patientToDelete.value.id, isHardDelete.value);
+    if (res) {
+      success(
+        isHardDelete.value ? 'Patient record permanently deleted' : 'Patient record archived',
+      );
+      isDeleteModalOpen.value = false;
+    } else {
+      error(patientStore.error || 'Delete failed');
+    }
+  };
+
+  const handleRestore = async (patient: any) => {
+    const res = await patientStore.restorePatient(patient.id);
+    if (res) {
+      success('Patient record restored');
+    } else {
+      error(patientStore.error || 'Restore failed');
+    }
+  };
 </script>

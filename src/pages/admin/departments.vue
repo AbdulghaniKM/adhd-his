@@ -112,7 +112,7 @@
   import AppForm from '../../components/ui/Fields/AppForm.vue';
   import ConfirmDangerModal from '../../components/ui/ConfirmDangerModal.vue';
   import { useToast } from '../../composables/useToast';
-  import { formatDateTime } from '../../utils/format-date';
+  import { formatDate } from '../../utils/format-date';
   import type { TableColumn } from '../../components/ui/AppTable.vue';
   import type { FormFieldRow } from '../../types/form';
 
@@ -123,7 +123,7 @@
 
   const columns: TableColumn[] = [
     { key: 'title', label: 'Department Name', sortable: true },
-    { key: 'createdAt', label: 'Created At', formatter: formatDateTime },
+    { key: 'createdAt', label: 'Created At', formatter: formatDate },
     { key: 'actions', label: 'Actions', class: 'text-end' },
   ];
 

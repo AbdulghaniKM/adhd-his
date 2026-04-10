@@ -8,10 +8,10 @@ function toDate(value: unknown): Date | null {
 
 export function formatDate(value: unknown): string {
   const d = toDate(value);
-  return d ? format(d, 'MMM d, yyyy') : '—';
+  return d ? format(d, 'd MMMM ,yyyy') : '—';
 }
 
 export function formatDateTime(value: unknown): string {
   const d = toDate(value);
-  return d ? format(d, 'MMM d, yyyy · HH:mm') : '—';
+  return d ? format(d, 'd MMMM ,yyyy · HH:mm') : '—';
 }

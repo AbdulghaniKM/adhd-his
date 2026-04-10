@@ -152,7 +152,7 @@
   import ConfirmDangerModal from '../../components/ui/ConfirmDangerModal.vue';
   import { useToast } from '../../composables/useToast';
   import { mapAppointmentStatus, mapAppointmentType } from '../../utils/enum-mapper';
-  import { formatDateTime } from '../../utils/format-date';
+  import { formatDate } from '../../utils/format-date';
   import { AppointmentStatus } from '../../types/enums.types';
   import type { TableColumn } from '../../components/ui/AppTable.vue';
 
@@ -162,7 +162,7 @@
   const isHardDelete = ref(false);
 
   const columns: TableColumn[] = [
-    { key: 'dateTime', label: 'Date & Time', sortable: true, formatter: formatDateTime },
+    { key: 'dateTime', label: 'Date & Time', sortable: true, formatter: formatDate },
     { key: 'patient', label: 'Patient' },
     { key: 'doctor', label: 'Doctor' },
     { key: 'type', label: 'Type' },
