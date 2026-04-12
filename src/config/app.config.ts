@@ -15,40 +15,40 @@ export const appConfig: AppConfig = {
   theme: {
     defaultTheme: 'system',
     light: {
-      primary: '#0d9488', // teal-600
-      secondary: '#0891b2', // cyan-600
-      accent: '#f59e0b', // amber-500
-      background: '#f8fafc', // slate-50
+      primary: '#2e37a4', // Indigo-like primary from Figma
+      secondary: '#0891b2',
+      accent: '#f59e0b',
+      background: '#f5f6f8', // Figma background
       surface: '#ffffff',
-      text: '#0f172a', // slate-900
-      textSecondary: '#64748b', // slate-500
-      border: '#e2e8f0', // slate-200
-      muted: '#f1f5f9', // slate-100
-      link: '#0d9488', // teal-600
-      linkHover: '#0f766e', // teal-700
-      emphasis: '#134e4a', // teal-950
-      success: '#10b981', // emerald-500
-      warning: '#f59e0b', // amber-500
-      error: '#ef4444', // red-500
-      info: '#0ea5e9', // sky-500
+      text: '#0a1b39', // Figma text primary
+      textSecondary: '#6c7688', // Figma text secondary
+      border: '#e7e8eb', // Figma border
+      muted: '#f1f5f9',
+      link: '#2e37a4',
+      linkHover: '#1e2572',
+      emphasis: '#0a1b39',
+      success: '#10b981',
+      warning: '#f59e0b',
+      error: '#ef4444',
+      info: '#0ea5e9',
     },
     dark: {
-      primary: '#2dd4bf', // teal-400
-      secondary: '#22d3ee', // cyan-400
-      accent: '#fbbf24', // amber-400
-      background: '#0f172a', // slate-900
-      surface: '#1e293b', // slate-800
-      text: '#f8fafc', // slate-50
-      textSecondary: '#94a3b8', // slate-400
-      border: '#334155', // slate-700
-      muted: '#1e293b', // slate-800
-      link: '#2dd4bf', // teal-400
-      linkHover: '#5eead4', // teal-300
-      emphasis: '#042f2e', // teal-950
-      success: '#34d399', // emerald-400
-      warning: '#fbbf24', // amber-400
-      error: '#f87171', // red-400
-      info: '#38bdf8', // sky-400
+      primary: '#6366f1', // Indigo-500
+      secondary: '#22d3ee',
+      accent: '#fbbf24',
+      background: '#0f172a', // Slate-900 (Softer than pitch black)
+      surface: '#1e293b', // Slate-800 (Distinct elevation)
+      text: '#f1f5f9', // Slate-100 (Clean but not piercing)
+      textSecondary: '#94a3b8', // Slate-400
+      border: '#334155', // Slate-700
+      muted: '#1e293b',
+      link: '#818cf8', // Indigo-400
+      linkHover: '#a5b4fc',
+      emphasis: '#0f172a',
+      success: '#34d399',
+      warning: '#fbbf24',
+      error: '#f87171',
+      info: '#38bdf8',
     },
   },
 

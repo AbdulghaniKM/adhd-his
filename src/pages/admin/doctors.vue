@@ -61,8 +61,8 @@
 
       <template #cell-isActive="{ value }">
         <span
-          class="rounded-full px-2 py-1 text-xs font-medium"
-          :class="value ? 'bg-success/10 text-success' : 'bg-muted text-text-secondary'"
+          class="border rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider transition-all"
+          :class="value ? 'bg-success/10 text-success border-success/20' : 'bg-muted text-text-secondary border-border/40'"
         >
           {{ value ? 'Active' : 'Inactive' }}
         </span>
@@ -192,52 +192,74 @@
     departmentStore.departments.map((d) => ({ label: d.title, value: d.id })),
   );
 
-  const formFields = computed<FormFieldRow[]>(() => [
-    [
-      { key: 'FirstName', label: 'First Name', type: 'text', placeholder: 'First Name' },
-      { key: 'LastName', label: 'Last Name', type: 'text', placeholder: 'Last Name' },
-    ],
-    [
-      { key: 'Username', label: 'Username', type: 'text' },
-      { key: 'Email', label: 'Email', type: 'email' },
-    ],
-    [
-      { key: 'DepartmentId', label: 'Department', type: 'select', items: departmentOptions.value },
-      { key: 'MedicalLicenseNumber', label: 'License Number', type: 'text' },
-    ],
-    [
-      { key: 'YearsOfExperience', label: 'Experience (Years)', type: 'number' },
-      { key: 'BirthDate', label: 'Birth Date', type: 'date' },
-    ],
-    [
-      {
-        key: 'Gender',
-        label: 'Gender',
-        type: 'select',
-        items: [
-          { label: 'Male', value: Gender.MALE },
-          { label: 'Female', value: Gender.FEMALE },
-        ],
-      },
-      {
-        key: 'BloodType',
-        label: 'Blood Type',
-        type: 'select',
-        items: Object.entries(BloodTypeLabels).map(([value, label]) => ({
-          label,
-          value: Number(value),
-        })),
-      },
-    ],
-    [
-      {
-        key: 'Password',
-        label: 'Account Password',
-        type: 'password',
-        placeholder: 'Keep empty to leave unchanged if editing',
-      },
-    ],
-  ]);
+  const formFields = computed<FormFieldRow[]>(() => {
+    const fields: FormFieldRow[] = [
+      [
+        { key: 'FirstName', label: 'First Name', type: 'text', placeholder: 'First Name' },
+        { key: 'LastName', label: 'Last Name', type: 'text', placeholder: 'Last Name' },
+      ],
+      [
+        { key: 'Username', label: 'Username', type: 'text' },
+        { key: 'Email', label: 'Email', type: 'email' },
+      ],
+      [
+        { key: 'DepartmentId', label: 'Department', type: 'select', items: departmentOptions.value },
+        { key: 'MedicalLicenseNumber', label: 'License Number', type: 'text' },
+      ],
+      [
+        { key: 'YearsOfExperience', label: 'Experience (Years)', type: 'number' },
+        { key: 'BirthDate', label: 'Birth Date', type: 'date' },
+      ],
+      [
+        {
+          key: 'Gender',
+          label: 'Gender',
+          type: 'select',
+          items: [
+            { label: 'Male', value: Gender.MALE },
+            { label: 'Female', value: Gender.FEMALE },
+          ],
+        },
+        {
+          key: 'BloodType',
+          label: 'Blood Type',
+          type: 'select',
+          items: Object.entries(BloodTypeLabels).map(([value, label]) => ({
+            label,
+            value: Number(value),
+          })),
+        },
+      ],
+    ];
+
+    if (editingDoctor.value) {
+      fields.push([
+        {
+          key: 'CurrentPassword',
+          label: 'Current Password',
+          type: 'password',
+          placeholder: 'Current password to change',
+        },
+        {
+          key: 'NewPassword',
+          label: 'New Password',
+          type: 'password',
+          placeholder: 'New password',
+        },
+      ]);
+    } else {
+      fields.push([
+        {
+          key: 'Password',
+          label: 'Account Password',
+          type: 'password',
+          placeholder: 'Enter password',
+        },
+      ]);
+    }
+
+    return fields;
+  });
 
   const isModalOpen = ref(false);
   const editingDoctor = ref<any>(null);

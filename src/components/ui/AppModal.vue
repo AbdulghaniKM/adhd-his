@@ -60,27 +60,27 @@
           <!-- Header -->
           <div
             v-if="title || icon || $slots.header"
-            class="flex shrink-0 items-start justify-between gap-4 px-6 pb-0 pt-6"
+            class="border-border/40 flex shrink-0 items-center justify-between gap-4 border-b px-5 py-4"
           >
             <slot name="header">
-              <div class="flex items-start gap-3">
+              <div class="flex items-center gap-3">
                 <div
                   v-if="icon"
-                  class="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl"
+                  class="flex size-9 shrink-0 items-center justify-center rounded-lg"
                   :class="iconContainerClass"
                 >
-                  <AppIcon :name="icon" :size="1.25" :class="iconColorClass" />
+                  <AppIcon :name="icon" :size="1.125" :class="iconColorClass" />
                 </div>
                 <div class="min-w-0">
-                  <h3 id="modal-title" class="text-text text-base font-semibold leading-snug">{{ title }}</h3>
-                  <p v-if="description" id="modal-desc" class="text-text-secondary mt-1 text-sm leading-relaxed">{{ description }}</p>
+                  <h3 id="modal-title" class="text-text text-[18px] font-bold leading-tight">{{ title }}</h3>
+                  <p v-if="description" id="modal-desc" class="text-text-secondary mt-0.5 text-xs font-medium">{{ description }}</p>
                 </div>
               </div>
             </slot>
             <button
               v-if="!hideClose"
               type="button"
-              class="text-text-secondary hover:bg-muted hover:text-text focus-visible:ring-primary/40 -me-1 -mt-1 flex size-8 shrink-0 items-center justify-center rounded-lg transition-all focus-visible:ring-2 focus-visible:outline-none active:scale-90"
+              class="text-text-secondary hover:bg-muted hover:text-text focus-visible:ring-primary/40 -me-1 flex size-8 shrink-0 items-center justify-center rounded-lg transition-all focus-visible:ring-2 focus-visible:outline-none active:scale-90"
               @click="handleClose"
               :aria-label="closeLabel"
             >
@@ -89,14 +89,14 @@
           </div>
 
           <!-- Body -->
-          <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+          <div class="min-h-0 flex-1 overflow-y-auto px-5 py-5">
             <slot />
           </div>
 
           <!-- Footer -->
           <div
             v-if="$slots.footer"
-            class="border-border shrink-0 border-t px-6 py-4"
+            class="border-border/40 shrink-0 border-t px-5 py-4"
           >
             <slot name="footer" />
           </div>

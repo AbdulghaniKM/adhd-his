@@ -6,6 +6,7 @@
         <p class="text-text-secondary text-sm">Register and manage patient records</p>
       </div>
       <AppButton
+        variant="primary"
         label="Register Patient"
         icon="icon-[heroicons-outline--user-plus]"
         @click="openCreateModal"

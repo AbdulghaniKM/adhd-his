@@ -2,7 +2,7 @@
 
 > **Base URL:** `https://his-api.bitxero-iq.com`  
 > **API Prefix:** `/api`  
-> **EEG module is excluded — it is not production-ready.**
+> **Last updated:** 2026-04-11
 
 ---
 
@@ -16,18 +16,22 @@
 6. [File Uploads](#6-file-uploads)
 7. [Role-Access Matrix](#7-role-access-matrix)
 8. [Endpoints](#8-endpoints)
-   - [Auth](#auth)
-   - [Patients](#patients)
-   - [Patient Allergies](#patient-allergies)
-   - [Patient Vitals](#patient-vitals)
-   - [Doctors](#doctors)
-   - [Doctor Education](#doctor-education)
-   - [Doctor Availability](#doctor-availability)
-   - [Admins](#admins)
-   - [Lab Techs](#lab-techs)
-   - [Departments](#departments)
-   - [Labs](#labs)
-   - [Enums](#enums-endpoints)
+  - [Auth](#auth)
+  - [Patients](#patients)
+  - [Patient Allergies](#patient-allergies)
+  - [Patient Vitals](#patient-vitals)
+  - [Doctors](#doctors)
+  - [Doctor Education](#doctor-education)
+  - [Doctor Availability](#doctor-availability)
+  - [Admins](#admins)
+  - [Lab Techs](#lab-techs)
+  - [Departments](#departments)
+  - [Labs](#labs)
+  - [Appointments](#appointments)
+  - [EEG Tests](#eeg-tests)
+  - [Enums Endpoints](#enums-endpoints)
+9. [Common Error Codes](#common-error-codes-summary)
+10. [Quick Start Checklist](#quick-start-checklist)
 
 ---
 
@@ -38,29 +42,33 @@
 1. Call the appropriate login endpoint for the user type.
 2. The API returns a **JWT Bearer token** (`AccessToken`) and its expiry.
 3. Attach the token to **every subsequent request** as:
-   ```
+  ```
    Authorization: Bearer <AccessToken>
-   ```
+  ```
 4. On logout, call `POST /api/auth/logout` — the token is revoked server-side and cannot be reused even if not expired.
 
 ### Roles
 
-| Role | Integer Value | Arabic Label | Description |
-|------|--------------|--------------|-------------|
-| `SuperAdmin` | 1 | سوبر ادمن | Full access, bypasses all role restrictions |
-| `Admin` | 2 | ادمن | Manages most resources |
-| `Doctor` | 3 | طبيب | Clinical access |
-| `LabTech` | 4 | تقني مختبر | Lab-scoped read/write access |
+
+| Role         | Integer Value | Arabic Label | Description                                 |
+| ------------ | ------------- | ------------ | ------------------------------------------- |
+| `SuperAdmin` | 1             | سوبر ادمن    | Full access, bypasses all role restrictions |
+| `Admin`      | 2             | ادمن         | Manages most resources                      |
+| `Doctor`     | 3             | طبيب         | Clinical access                             |
+| `LabTech`    | 4             | تقني مختبر   | Lab-scoped read/write access                |
+
 
 > **Tip:** Store the `Role` field from the login response to control which UI views are shown without parsing the JWT.
 
 ### Login Endpoints by Role
 
-| Role | Endpoint |
-|------|----------|
-| Admin / SuperAdmin | `POST /api/auth/admin/login` |
-| Doctor | `POST /api/auth/doctor/login` |
-| LabTech | `POST /api/auth/lab-tech/login` |
+
+| Role               | Endpoint                        |
+| ------------------ | ------------------------------- |
+| Admin / SuperAdmin | `POST /api/auth/admin/login`    |
+| Doctor             | `POST /api/auth/doctor/login`   |
+| LabTech            | `POST /api/auth/lab-tech/login` |
+
 
 ### Login Request Body
 
@@ -208,79 +216,125 @@ Use `id` (integer) when **sending** enum values in requests. Use `value` (Arabic
 
 ### Available Enum Endpoints
 
-| Endpoint | Used In |
-|----------|---------|
-| `GET /api/enums/app-roles` | Auth / user management |
-| `GET /api/enums/gender` | Patients, Doctors |
-| `GET /api/enums/week-days` | Doctor availability |
-| `GET /api/enums/blood-type` | Patients, Doctors |
-| `GET /api/enums/patient-status` | Patients |
-| `GET /api/enums/allergy-severity` | Patient allergies |
-| `GET /api/enums/appointment-type` | Appointments |
-| `GET /api/enums/appointment-status` | Appointments |
 
-### Quick Reference (values to send in requests)
+| Endpoint                            | Used In                |
+| ----------------------------------- | ---------------------- |
+| `GET /api/enums/app-roles`          | Auth / user management |
+| `GET /api/enums/gender`             | Patients, Doctors      |
+| `GET /api/enums/week-days`          | Doctor availability    |
+| `GET /api/enums/blood-type`         | Patients, Doctors      |
+| `GET /api/enums/patient-status`     | Patients               |
+| `GET /api/enums/allergy-severity`   | Patient allergies      |
+| `GET /api/enums/appointment-type`   | Appointments           |
+| `GET /api/enums/appointment-status` | Appointments           |
+| `GET /api/enums/eeg-test-status`    | EEG Tests              |
+| `GET /api/enums/adhd-prediction`    | EEG Tests              |
+
+
+### Quick Reference
 
 **Gender**
-| id | name | Display |
-|----|------|---------|
-| 0 | NotSet | غير محدد |
-| 1 | Male | ذكر |
-| 2 | Female | انثى |
+
+
+| id  | name   | Display  |
+| --- | ------ | -------- |
+| 0   | NotSet | غير محدد |
+| 1   | Male   | ذكر      |
+| 2   | Female | انثى     |
+
 
 > Sending `NotSet (0)` for gender is rejected — patients and doctors must have a gender specified.
 
 **BloodType**
-| id | name | Display |
-|----|------|---------|
-| 0 | APositive | A+ |
-| 1 | ANegative | A- |
-| 2 | BPositive | B+ |
-| 3 | BNegative | B- |
-| 4 | ABPositive | AB+ |
-| 5 | ABNegative | AB- |
-| 6 | OPositive | O+ |
-| 7 | ONegative | O- |
+
+
+| id  | name       | Display |
+| --- | ---------- | ------- |
+| 0   | APositive  | A+      |
+| 1   | ANegative  | A-      |
+| 2   | BPositive  | B+      |
+| 3   | BNegative  | B-      |
+| 4   | ABPositive | AB+     |
+| 5   | ABNegative | AB-     |
+| 6   | OPositive  | O+      |
+| 7   | ONegative  | O-      |
+
 
 **PatientStatus**
-| id | name | Display |
-|----|------|---------|
-| 0 | NotSet | غير محدد |
-| 1 | InPatient | مريض داخلي |
-| 2 | OutPatient | مريض خارجي |
+
+
+| id  | name       | Display    |
+| --- | ---------- | ---------- |
+| 0   | NotSet     | غير محدد   |
+| 1   | InPatient  | مريض داخلي |
+| 2   | OutPatient | مريض خارجي |
+
 
 **AllergySeverity**
-| id | name | Display |
-|----|------|---------|
-| 0 | Mild | خفيف |
-| 1 | Moderate | متوسط |
-| 2 | Severe | شديد |
+
+
+| id  | name     | Display |
+| --- | -------- | ------- |
+| 0   | Mild     | خفيف    |
+| 1   | Moderate | متوسط   |
+| 2   | Severe   | شديد    |
+
 
 **AppointmentType**
-| id | name | Display |
-|----|------|---------|
-| 0 | InPerson | حضوري |
-| 1 | Online | عن بعد |
+
+
+| id  | name     | Display |
+| --- | -------- | ------- |
+| 0   | InPerson | حضوري   |
+| 1   | Online   | عن بعد  |
+
 
 **AppointmentStatus**
-| id | name | Display |
-|----|------|---------|
-| 0 | Scheduled | مجدول |
-| 1 | Confirmed | مؤكد |
-| 2 | CheckedIn | تم التسجيل |
-| 3 | CheckedOut | تم الخروج |
-| 4 | Cancelled | ملغي |
+
+
+| id  | name       | Display    |
+| --- | ---------- | ---------- |
+| 0   | Scheduled  | مجدول      |
+| 1   | Confirmed  | مؤكد       |
+| 2   | CheckedIn  | تم التسجيل |
+| 3   | CheckedOut | تم الخروج  |
+| 4   | Cancelled  | ملغي       |
+
 
 **WeekDays**
-| id | name | Display |
-|----|------|---------|
-| 0 | Saturday | سبت |
-| 1 | Sunday | احد |
-| 2 | Monday | اثنين |
-| 3 | Tuesday | ثلاثاء |
-| 4 | Wednesday | اربعاء |
-| 5 | Thursday | خميس |
-| 6 | Friday | جمعة |
+
+
+| id  | name      | Display |
+| --- | --------- | ------- |
+| 0   | Saturday  | سبت     |
+| 1   | Sunday    | احد     |
+| 2   | Monday    | اثنين   |
+| 3   | Tuesday   | ثلاثاء  |
+| 4   | Wednesday | اربعاء  |
+| 5   | Thursday  | خميس    |
+| 6   | Friday    | جمعة    |
+
+
+**EegTestStatus**
+
+
+| id  | name       | Display     |
+| --- | ---------- | ----------- |
+| 0   | Ordered    | مطلوب       |
+| 1   | InProgress | قيد التنفيذ |
+| 2   | Completed  | مكتمل       |
+| 3   | Analyzed   | محلل        |
+| 4   | Cancelled  | ملغي        |
+
+
+**AdhdPrediction**
+
+
+| id  | name    | Display |
+| --- | ------- | ------- |
+| 0   | Adhd    | ADHD    |
+| 1   | Control | طبيعي   |
+
 
 ---
 
@@ -288,13 +342,15 @@ Use `id` (integer) when **sending** enum values in requests. Use `value` (Arabic
 
 All list endpoints accept these query parameters:
 
-| Parameter | Type | Default | Notes |
-|-----------|------|---------|-------|
-| `pageNumber` | int | 1 | Minimum: 1 |
-| `pageSize` | int | 20 | Maximum: 50 |
-| `sortBy` | string | — | Field name to sort by |
-| `sortDescending` | bool | false | — |
-| `isDeleted` | bool? | false | SuperAdmin only; others always see `false` |
+
+| Parameter        | Type   | Default | Notes                                      |
+| ---------------- | ------ | ------- | ------------------------------------------ |
+| `pageNumber`     | int    | 1       | Minimum: 1                                 |
+| `pageSize`       | int    | 20      | Maximum: 50                                |
+| `sortBy`         | string | —       | Field name to sort by                      |
+| `sortDescending` | bool   | false   | —                                          |
+| `isDeleted`      | bool?  | false   | SuperAdmin only; others always see `false` |
+
 
 String filter fields use a **LIKE/contains** match (e.g., `firstName=ali` matches "Aliah", "ali", "Salim Ali").
 
@@ -304,11 +360,13 @@ String filter fields use a **LIKE/contains** match (e.g., `firstName=ali` matche
 
 Most resources support soft delete instead of permanent removal. There are **three distinct operations**:
 
-| Operation | HTTP Method | Route Suffix | What It Does |
-|-----------|-------------|--------------|--------------|
-| Soft Delete | `DELETE` | `/{id}/soft` | Marks record as deleted (`isDeleted = true`) |
-| Restore | `PATCH` | `/{id}/soft` | Restores a soft-deleted record |
-| Permanent Delete | `DELETE` | `/{id}` | Removes the record from the database forever |
+
+| Operation        | HTTP Method | Route Suffix | What It Does                                 |
+| ---------------- | ----------- | ------------ | -------------------------------------------- |
+| Soft Delete      | `DELETE`    | `/{id}/soft` | Marks record as deleted (`isDeleted = true`) |
+| Restore          | `PATCH`     | `/{id}/soft` | Restores a soft-deleted record               |
+| Permanent Delete | `DELETE`    | `/{id}`      | Removes the record from the database forever |
+
 
 > Non-SuperAdmin users **never see** soft-deleted records in list or get-by-id responses. Only SuperAdmin can query deleted records by sending `isDeleted=true`.
 
@@ -316,72 +374,84 @@ Most resources support soft delete instead of permanent removal. There are **thr
 
 ## 6. File Uploads
 
-Endpoints that accept images use **`multipart/form-data`**. Send the image field as `image` (optional in all cases).
+Endpoints that accept images use `**multipart/form-data`**. Send the image field as `image` (optional in all cases).
 
 Image URLs in responses are absolute URLs:
+
 ```
 https://his-api.bitxero-iq.com/uploads/patients/<fileId>.jpg
 ```
 
 **Supported entity types with images:** Patients, Doctors, Admins, LabTechs.
 
+**EEG file uploads** use `multipart/form-data` with the field name `file` (not `image`). EEG files are private — they are not served via a public URL.
+
 ---
 
 ## 7. Role-Access Matrix
 
-Legend: **A** = Admin, **SA** = SuperAdmin, **D** = Doctor, **LT** = LabTech
+Legend: **SA** = SuperAdmin, **A** = Admin, **D** = Doctor, **LT** = LabTech
 
-| Resource & Action | SA | A | D | LT |
-|-------------------|----|---|---|----|
-| **Auth** | | | | |
-| Login | ✓ | ✓ | ✓ | ✓ |
-| Logout | ✓ | ✓ | ✓ | ✓ |
-| **Patients** | | | | |
-| Create | ✓ | ✓ | ✓ | |
-| List / Get | ✓ | ✓ | ✓ | ✓ |
-| Update | ✓ | ✓ | ✓ | |
-| Soft Delete | ✓ | ✓ | ✓ | |
-| Restore | ✓ | ✓ | | |
-| Permanent Delete | ✓ | ✓ | | |
-| **Patient Allergies** | | | | |
-| Create / Update | ✓ | ✓ | ✓ | |
-| List | ✓ | ✓ | ✓ | ✓ |
-| Soft Delete / Restore | ✓ | ✓ | ✓ | |
-| Permanent Delete | ✓ | ✓ | ✓ | |
-| **Patient Vitals** | | | | |
-| Create | ✓ | ✓ | ✓ | |
-| List | ✓ | ✓ | ✓ | ✓ |
-| Permanent Delete | ✓ | ✓ | ✓ | |
-| **Doctors** | | | | |
-| Create | ✓ | ✓ | | |
-| List / Get | ✓ | ✓ | ✓ | |
-| Update (admin) | ✓ | ✓ | | |
-| Update own profile | ✓ | | ✓ | |
-| Soft Delete / Restore / Hard Delete | ✓ | ✓ | | |
-| **Doctor Education** | | | | |
-| Create / Update / Delete | ✓ | ✓ | | |
-| List | ✓ | ✓ | ✓ | |
-| **Doctor Availability** | | | | |
-| Create / Update / Delete | ✓ | ✓ | | |
-| List | ✓ | ✓ | ✓ | |
-| **Admins** | | | | |
-| All operations | ✓ | ✓ | | |
-| **Lab Techs** | | | | |
-| All operations | ✓ | ✓ | | |
-| **Departments** | | | | |
-| Create / Update / Delete | ✓ | ✓ | | |
-| List / Get | ✓ | ✓ | ✓ | ✓ |
-| **Labs** | | | | |
-| Create / Update / Soft Delete | ✓ | ✓ | | ✓ |
-| Restore / Hard Delete | ✓ | ✓ | | |
-| List / Get | ✓ | ✓ | ✓ | ✓ |
-| **Appointments** | | | | |
-| Create | ✓ | ✓ | ✓ | |
-| Get By Id | ✓ | ✓ | ✓ | |
-| List All | ✓ | ✓ | | |
-| List By Patient / Doctor | ✓ | ✓ | ✓ | |
-| Update Status | ✓ | ✓ | ✓ | |
-| Soft Delete / Restore / Hard Delete | ✓ | ✓ | ✓ | |
+
+| Resource & Action                   | SA  | A   | D   | LT  |
+| ----------------------------------- | --- | --- | --- | --- |
+| **Auth**                            |     |     |     |     |
+| Login / Logout                      | ✓   | ✓   | ✓   | ✓   |
+| **Patients**                        |     |     |     |     |
+| Create                              | ✓   | ✓   | ✓   |     |
+| List / Get                          | ✓   | ✓   | ✓   | ✓   |
+| Update                              | ✓   | ✓   | ✓   |     |
+| Soft Delete                         | ✓   | ✓   | ✓   |     |
+| Restore                             | ✓   | ✓   |     |     |
+| Permanent Delete                    | ✓   | ✓   |     |     |
+| **Patient Allergies**               |     |     |     |     |
+| Create / Update                     | ✓   | ✓   | ✓   |     |
+| List                                | ✓   | ✓   | ✓   | ✓   |
+| Soft Delete / Restore / Hard Delete | ✓   | ✓   | ✓   |     |
+| **Patient Vitals**                  |     |     |     |     |
+| Create                              | ✓   | ✓   | ✓   |     |
+| List                                | ✓   | ✓   | ✓   | ✓   |
+| Permanent Delete                    | ✓   | ✓   | ✓   |     |
+| **Doctors**                         |     |     |     |     |
+| Create                              | ✓   | ✓   |     |     |
+| List / Get                          | ✓   | ✓   | ✓   |     |
+| Update (admin)                      | ✓   | ✓   |     |     |
+| Update own profile                  | ✓   |     | ✓   |     |
+| Soft Delete / Restore / Hard Delete | ✓   | ✓   |     |     |
+| **Doctor Education**                |     |     |     |     |
+| Create / Update / Delete            | ✓   | ✓   |     |     |
+| List                                | ✓   | ✓   | ✓   |     |
+| **Doctor Availability**             |     |     |     |     |
+| Create / Update / Delete            | ✓   | ✓   |     |     |
+| List                                | ✓   | ✓   | ✓   |     |
+| **Admins**                          |     |     |     |     |
+| All operations                      | ✓   | ✓   |     |     |
+| **Lab Techs**                       |     |     |     |     |
+| All operations                      | ✓   | ✓   |     |     |
+| **Departments**                     |     |     |     |     |
+| Create / Update / Delete            | ✓   | ✓   |     |     |
+| List / Get                          | ✓   | ✓   | ✓   | ✓   |
+| **Labs**                            |     |     |     |     |
+| Create / Update / Soft Delete       | ✓   | ✓   |     | ✓   |
+| Restore / Hard Delete               | ✓   | ✓   |     |     |
+| List / Get                          | ✓   | ✓   | ✓   | ✓   |
+| **Appointments**                    |     |     |     |     |
+| Create                              | ✓   | ✓   | ✓   |     |
+| Get By Id                           | ✓   | ✓   | ✓   |     |
+| List All                            | ✓   | ✓   |     |     |
+| List By Patient / Doctor            | ✓   | ✓   | ✓   |     |
+| Update Status                       | ✓   | ✓   | ✓   |     |
+| Soft Delete / Restore / Hard Delete | ✓   | ✓   | ✓   |     |
+| **EEG Tests**                       |     |     |     |     |
+| Create test                         | ✓   | ✓   | ✓   |     |
+| Get by ID                           | ✓   | ✓   | ✓   | ✓   |
+| List all                            | ✓   | ✓   |     | ✓   |
+| List by patient                     | ✓   | ✓   | ✓   |     |
+| Update status                       | ✓   | ✓   | ✓   | ✓   |
+| Upload CSV                          | ✓   | ✓   | ✓   | ✓   |
+| Get uploads                         | ✓   | ✓   | ✓   | ✓   |
+| Trigger analysis                    | ✓   | ✓   | ✓   | ✓   |
+
 
 ---
 
@@ -392,12 +462,15 @@ Legend: **A** = Admin, **SA** = SuperAdmin, **D** = Doctor, **LT** = LabTech
 ### Auth
 
 #### `POST /api/auth/admin/login`
+
 #### `POST /api/auth/doctor/login`
+
 #### `POST /api/auth/lab-tech/login`
 
 **Auth required:** No
 
 **Request body:**
+
 ```json
 {
   "username": "string",
@@ -406,6 +479,7 @@ Legend: **A** = Admin, **SA** = SuperAdmin, **D** = Doctor, **LT** = LabTech
 ```
 
 **Response `200 OK`:**
+
 ```json
 {
   "data": {
@@ -439,20 +513,20 @@ Legend: **A** = Admin, **SA** = SuperAdmin, **D** = Doctor, **LT** = LabTech
 **Auth required:** Admin, Doctor  
 **Content-Type:** `multipart/form-data`
 
-**Request fields:**
 
-| Field | Type | Required | Validation |
-|-------|------|----------|------------|
-| firstName | string | Yes | max 100 |
-| lastName | string | Yes | max 100 |
-| phone | string | Yes | max 30 |
-| birthDate | DateOnly `YYYY-MM-DD` | Yes | — |
-| gender | int (enum) | Yes | 1 or 2 (NotSet not allowed) |
-| email | string | No | valid email, max 320 |
-| bloodType | int (enum) | No | 0–7 |
-| address | string | No | — |
-| primaryDoctorId | uuid | No | Must exist |
-| image | file | No | — |
+| Field           | Type                  | Required | Validation                  |
+| --------------- | --------------------- | -------- | --------------------------- |
+| firstName       | string                | Yes      | max 100                     |
+| lastName        | string                | Yes      | max 100                     |
+| phone           | string                | Yes      | max 30                      |
+| birthDate       | DateOnly `YYYY-MM-DD` | Yes      | —                           |
+| gender          | int (enum)            | Yes      | 1 or 2 (NotSet not allowed) |
+| email           | string                | No       | valid email, max 320        |
+| bloodType       | int (enum)            | No       | 0–7                         |
+| address         | string                | No       | —                           |
+| primaryDoctorId | uuid                  | No       | Must exist                  |
+| image           | file                  | No       | —                           |
+
 
 **Response `200 OK`:** `PatientResponse`
 
@@ -488,18 +562,16 @@ Legend: **A** = Admin, **SA** = SuperAdmin, **D** = Doctor, **LT** = LabTech
 
 **Auth required:** Admin, Doctor, LabTech
 
-**Query parameters:**
 
-| Parameter | Type | Filter Type |
-|-----------|------|-------------|
-| firstName | string | LIKE |
-| lastName | string | LIKE |
-| email | string | LIKE |
-| phone | string | LIKE |
-| status | int (enum) | Exact |
-| primaryDoctorId | uuid | Exact |
-| pageNumber | int | — |
-| pageSize | int | — |
+| Filter          | Type       | Match |
+| --------------- | ---------- | ----- |
+| firstName       | string     | LIKE  |
+| lastName        | string     | LIKE  |
+| email           | string     | LIKE  |
+| phone           | string     | LIKE  |
+| status          | int (enum) | Exact |
+| primaryDoctorId | uuid       | Exact |
+
 
 **Response `200 OK`:** Paged list of `PatientResponse`
 
@@ -518,13 +590,12 @@ Legend: **A** = Admin, **SA** = SuperAdmin, **D** = Doctor, **LT** = LabTech
 
 **Auth required:** Admin, Doctor, LabTech
 
-Returns the patient's full profile including:
-- All base patient fields
-- `latestVitals` — the most recent vitals record
+Returns all patient fields plus:
+
+- `latestVitals` — most recent vitals record
 - `allergies` — full allergy list
 - `lastVisits` — recent appointment history
 
-**Response `200 OK`:**
 ```json
 {
   "data": {
@@ -535,12 +606,10 @@ Returns the patient's full profile including:
       "bloodPressure": "120/80",
       "weight": 70.5,
       "height": 175.0,
-      "recordedAt": "2026-04-09T10:00:00Z",
-      "createdAt": "...",
-      "updatedAt": "..."
+      "recordedAt": "2026-04-09T10:00:00Z"
     },
-    "allergies": [ ... ],
-    "lastVisits": [ ... ]
+    "allergies": [ "...AllergyResponse..." ],
+    "lastVisits": [ "...AppointmentResponse..." ]
   }
 }
 ```
@@ -556,26 +625,30 @@ Returns the patient's full profile including:
 
 All fields optional. Only send what needs to change.
 
-| Field | Type | Validation |
-|-------|------|------------|
-| firstName | string | max 100 |
-| lastName | string | max 100 |
-| phone | string | max 30 |
-| birthDate | DateOnly | — |
-| gender | int | — |
-| email | string | valid email |
-| bloodType | int | — |
-| address | string | — |
-| status | int (enum) | 0–2 |
-| primaryDoctorId | uuid | Must exist |
-| image | file | — |
+
+| Field           | Type       | Validation  |
+| --------------- | ---------- | ----------- |
+| firstName       | string     | max 100     |
+| lastName        | string     | max 100     |
+| phone           | string     | max 30      |
+| birthDate       | DateOnly   | —           |
+| gender          | int        | —           |
+| email           | string     | valid email |
+| bloodType       | int        | —           |
+| address         | string     | —           |
+| status          | int (enum) | 0–2         |
+| primaryDoctorId | uuid       | Must exist  |
+| image           | file       | —           |
+
 
 **Errors:** `400` Validation, `404` Not found
 
 ---
 
 #### `DELETE /api/patients/{id}/soft` — Soft delete (Admin, Doctor)
+
 #### `PATCH  /api/patients/{id}/soft` — Restore (Admin only)
+
 #### `DELETE /api/patients/{id}` — Permanent delete (Admin only)
 
 All return `200 OK` empty success or `404` not found.
@@ -599,6 +672,7 @@ Base path: `/api/patients/{patientId}/allergies`
 ```
 
 **Response `200 OK`:** `AllergyResponse`
+
 ```json
 {
   "data": {
@@ -630,9 +704,9 @@ Base path: `/api/patients/{patientId}/allergies`
 
 #### `PUT /api/patients/{patientId}/allergies/{allergyId}`
 
-**Auth required:** Admin, Doctor
-
+**Auth required:** Admin, Doctor  
 All fields optional:
+
 ```json
 {
   "allergen": "string",
@@ -644,7 +718,9 @@ All fields optional:
 ---
 
 #### `DELETE /api/patients/{patientId}/allergies/{allergyId}/soft` — Soft delete (Admin, Doctor)
+
 #### `PATCH  /api/patients/{patientId}/allergies/{allergyId}/soft` — Restore (Admin, Doctor)
+
 #### `DELETE /api/patients/{patientId}/allergies/{allergyId}` — Permanent delete (Admin, Doctor)
 
 ---
@@ -657,23 +733,15 @@ Base path: `/api/patients/{patientId}/vitals`
 
 **Auth required:** Admin, Doctor
 
-```json
-{
-  "heartRate": 72.0,
-  "bloodPressure": "120/80",
-  "weight": 70.5,
-  "height": 175.0,
-  "recordedAt": "2026-04-10T08:30:00Z"
-}
-```
 
-| Field | Type | Required | Validation |
-|-------|------|----------|------------|
-| heartRate | float | No | 0 < x < 400 |
-| bloodPressure | string | No | — |
-| weight | float | No | > 0 |
-| height | float | No | > 0 |
-| recordedAt | DateTime | **Yes** | — |
+| Field         | Type     | Required | Validation  |
+| ------------- | -------- | -------- | ----------- |
+| heartRate     | float    | No       | 0 < x < 400 |
+| bloodPressure | string   | No       | —           |
+| weight        | float    | No       | > 0         |
+| height        | float    | No       | > 0         |
+| recordedAt    | DateTime | **Yes**  | —           |
+
 
 **Response `200 OK`:** `VitalsResponse`
 
@@ -684,14 +752,11 @@ Base path: `/api/patients/{patientId}/vitals`
 **Auth required:** Admin, Doctor, LabTech  
 **Query:** `pageNumber`, `pageSize`
 
-**Response:** Paged list of `VitalsResponse`
-
 ---
 
 #### `DELETE /api/patients/{patientId}/vitals/{vitalId}`
 
-**Auth required:** Admin, Doctor  
-Permanent delete only — vitals have no soft delete.
+**Auth required:** Admin, Doctor — permanent delete only.
 
 ---
 
@@ -702,24 +767,26 @@ Permanent delete only — vitals have no soft delete.
 **Auth required:** Admin  
 **Content-Type:** `multipart/form-data`
 
-| Field | Type | Required | Validation |
-|-------|------|----------|------------|
-| firstName | string | Yes | max 100 |
-| lastName | string | Yes | max 100 |
-| username | string | Yes | max 50, unique |
-| password | string | Yes | min 8 |
-| email | string | No | valid email, max 320 |
-| phone | string | No | max 30 |
-| birthDate | DateOnly | Yes | — |
-| gender | int | Yes | 1 or 2 (not NotSet) |
-| bloodType | int | No | — |
-| bio | string | No | — |
-| medicalLicenseNumber | string | Yes | max 100, unique |
-| departmentId | uuid | Yes | Must exist |
-| consultationCharge | decimal | No | >= 0 |
-| yearsOfExperience | int | Yes | >= 0 |
-| location | string | No | — |
-| image | file | No | — |
+
+| Field                | Type     | Required | Validation           |
+| -------------------- | -------- | -------- | -------------------- |
+| firstName            | string   | Yes      | max 100              |
+| lastName             | string   | Yes      | max 100              |
+| username             | string   | Yes      | max 50, unique       |
+| password             | string   | Yes      | min 8                |
+| email                | string   | No       | valid email, max 320 |
+| phone                | string   | No       | max 30               |
+| birthDate            | DateOnly | Yes      | —                    |
+| gender               | int      | Yes      | 1 or 2               |
+| bloodType            | int      | No       | —                    |
+| bio                  | string   | No       | —                    |
+| medicalLicenseNumber | string   | Yes      | max 100, unique      |
+| departmentId         | uuid     | Yes      | Must exist           |
+| consultationCharge   | decimal  | No       | >= 0                 |
+| yearsOfExperience    | int      | Yes      | >= 0                 |
+| location             | string   | No       | —                    |
+| image                | file     | No       | —                    |
+
 
 **Response `200 OK`:** `DoctorResponse`
 
@@ -758,13 +825,15 @@ Permanent delete only — vitals have no soft delete.
 
 **Auth required:** Admin, Doctor
 
-| Filter | Type | Match |
-|--------|------|-------|
-| firstName | string | LIKE |
-| lastName | string | LIKE |
-| email | string | LIKE |
-| departmentId | uuid | Exact |
-| isActive | bool | Exact |
+
+| Filter       | Type   | Match |
+| ------------ | ------ | ----- |
+| firstName    | string | LIKE  |
+| lastName     | string | LIKE  |
+| email        | string | LIKE  |
+| departmentId | uuid   | Exact |
+| isActive     | bool   | Exact |
+
 
 **Response:** Paged list of `DoctorResponse`
 
@@ -774,8 +843,6 @@ Permanent delete only — vitals have no soft delete.
 
 **Auth required:** Admin, Doctor
 
-**Response `200 OK`:** Single `DoctorResponse`
-
 ---
 
 #### `PUT /api/doctors/{id}`
@@ -783,22 +850,26 @@ Permanent delete only — vitals have no soft delete.
 **Auth required:** Admin  
 All fields optional. To change password, provide both `currentPassword` and `newPassword`.
 
-| Field | Notes |
-|-------|-------|
-| currentPassword | Required when changing password |
-| newPassword | min 8, requires `currentPassword` |
+
+| Field           | Notes                             |
+| --------------- | --------------------------------- |
+| currentPassword | Required when changing password   |
+| newPassword     | min 8, requires `currentPassword` |
+
 
 ---
 
 #### `PUT /api/doctors/{id}/profile`
 
 **Auth required:** Doctor only (own profile)  
-Same request shape as admin update. Server verifies the token's user ID matches `{id}`.
+Same request shape as admin update. Server verifies the token's user ID matches `{id}` — returns `403` if it doesn't.
 
 ---
 
 #### `DELETE /api/doctors/{id}/soft` — Soft delete (Admin)
+
 #### `PATCH  /api/doctors/{id}/soft` — Restore (Admin)
+
 #### `DELETE /api/doctors/{id}` — Permanent delete (Admin)
 
 ---
@@ -822,6 +893,7 @@ Base path: `/api/doctors/{doctorId}/education`
 Year must be between 1900 and 2100 if provided.
 
 **Response `200 OK`:** `EducationResponse`
+
 ```json
 {
   "data": {
@@ -876,6 +948,7 @@ Base path: `/api/doctors/{doctorId}/availability`
 `endTime` must be after `startTime`.
 
 **Response `200 OK`:** `AvailabilityResponse`
+
 ```json
 {
   "data": {
@@ -919,16 +992,19 @@ Base path: `/api/doctors/{doctorId}/availability`
 
 **Content-Type:** `multipart/form-data`
 
-| Field | Required | Validation |
-|-------|----------|------------|
-| firstName | Yes | max 100 |
-| lastName | Yes | max 100 |
-| username | Yes | max 50, unique |
-| email | Yes | valid email, max 320 |
-| password | Yes | min 8 |
-| image | No | — |
+
+| Field     | Required | Validation           |
+| --------- | -------- | -------------------- |
+| firstName | Yes      | max 100              |
+| lastName  | Yes      | max 100              |
+| username  | Yes      | max 50, unique       |
+| email     | Yes      | valid email, max 320 |
+| password  | Yes      | min 8                |
+| image     | No       | —                    |
+
 
 **Response `200 OK`:** `AdminResponse`
+
 ```json
 {
   "data": {
@@ -952,19 +1028,25 @@ Base path: `/api/doctors/{doctorId}/availability`
 
 #### `GET /api/admins`
 
-| Filter | Type | Match |
-|--------|------|-------|
-| firstName | string | LIKE |
-| lastName | string | LIKE |
-| email | string | LIKE |
-| isActive | bool | Exact |
+
+| Filter    | Type   | Match |
+| --------- | ------ | ----- |
+| firstName | string | LIKE  |
+| lastName  | string | LIKE  |
+| email     | string | LIKE  |
+| isActive  | bool   | Exact |
+
 
 ---
 
 #### `GET /api/admins/{id}` — Single admin
+
 #### `PUT /api/admins/{id}` — Update (multipart, all optional)
+
 #### `DELETE /api/admins/{id}/soft` — Soft delete
+
 #### `PATCH  /api/admins/{id}/soft` — Restore
+
 #### `DELETE /api/admins/{id}` — Permanent delete
 
 ---
@@ -977,18 +1059,21 @@ Base path: `/api/doctors/{doctorId}/availability`
 
 **Content-Type:** `multipart/form-data`
 
-| Field | Required | Validation |
-|-------|----------|------------|
-| firstName | Yes | max 100 |
-| lastName | Yes | max 100 |
-| username | Yes | max 50, unique |
-| email | Yes | valid email, max 320 |
-| password | Yes | min 8 |
-| phone | No | max 30 |
-| labId | No | Must exist if provided |
-| image | No | — |
+
+| Field     | Required | Validation             |
+| --------- | -------- | ---------------------- |
+| firstName | Yes      | max 100                |
+| lastName  | Yes      | max 100                |
+| username  | Yes      | max 50, unique         |
+| email     | Yes      | valid email, max 320   |
+| password  | Yes      | min 8                  |
+| phone     | No       | max 30                 |
+| labId     | No       | Must exist if provided |
+| image     | No       | —                      |
+
 
 **Response `200 OK`:** `LabTechResponse`
+
 ```json
 {
   "data": {
@@ -1015,19 +1100,25 @@ Base path: `/api/doctors/{doctorId}/availability`
 
 #### `GET /api/lab-techs`
 
-| Filter | Type | Match |
-|--------|------|-------|
-| firstName | string | LIKE |
-| lastName | string | LIKE |
-| email | string | LIKE |
-| isActive | bool | Exact |
+
+| Filter    | Type   | Match |
+| --------- | ------ | ----- |
+| firstName | string | LIKE  |
+| lastName  | string | LIKE  |
+| email     | string | LIKE  |
+| isActive  | bool   | Exact |
+
 
 ---
 
 #### `GET /api/lab-techs/{id}`
+
 #### `PUT /api/lab-techs/{id}` — Update (multipart, all optional)
+
 #### `DELETE /api/lab-techs/{id}/soft` — Soft delete
+
 #### `PATCH  /api/lab-techs/{id}/soft` — Restore
+
 #### `DELETE /api/lab-techs/{id}` — Permanent delete
 
 ---
@@ -1045,6 +1136,7 @@ Base path: `/api/doctors/{doctorId}/availability`
 ```
 
 **Response `200 OK`:** `DepartmentResponse`
+
 ```json
 {
   "data": {
@@ -1066,16 +1158,22 @@ Base path: `/api/doctors/{doctorId}/availability`
 
 **Auth required:** Admin, Doctor, LabTech
 
-| Filter | Type | Match |
-|--------|------|-------|
-| title | string | LIKE |
+
+| Filter | Type   | Match |
+| ------ | ------ | ----- |
+| title  | string | LIKE  |
+
 
 ---
 
 #### `GET /api/departments/{id}` — (Admin, Doctor, LabTech)
+
 #### `PUT /api/departments/{id}` — Update title (Admin)
+
 #### `DELETE /api/departments/{id}/soft` — Soft delete (Admin)
+
 #### `PATCH  /api/departments/{id}/soft` — Restore (Admin)
+
 #### `DELETE /api/departments/{id}` — Permanent delete (Admin) — `400` if department has doctors
 
 ---
@@ -1095,6 +1193,7 @@ Base path: `/api/doctors/{doctorId}/availability`
 ```
 
 **Response `200 OK`:** `LabResponse`
+
 ```json
 {
   "data": {
@@ -1116,17 +1215,23 @@ Base path: `/api/doctors/{doctorId}/availability`
 
 **Auth required:** Admin, Doctor, LabTech
 
-| Filter | Type | Match |
-|--------|------|-------|
-| name | string | LIKE |
-| location | string | LIKE |
+
+| Filter   | Type   | Match |
+| -------- | ------ | ----- |
+| name     | string | LIKE  |
+| location | string | LIKE  |
+
 
 ---
 
 #### `GET /api/labs/{id}` — (Admin, Doctor, LabTech)
+
 #### `PUT /api/labs/{id}` — Update (Admin, LabTech)
+
 #### `DELETE /api/labs/{id}/soft` — Soft delete (Admin, LabTech)
+
 #### `PATCH  /api/labs/{id}/soft` — Restore (Admin only)
+
 #### `DELETE /api/labs/{id}` — Permanent delete (Admin only) — `400` if lab has lab techs
 
 ---
@@ -1148,6 +1253,7 @@ Base path: `/api/doctors/{doctorId}/availability`
 ```
 
 **Response `200 OK`:** `AppointmentResponse`
+
 ```json
 {
   "data": {
@@ -1177,13 +1283,15 @@ Base path: `/api/doctors/{doctorId}/availability`
 
 **Auth required:** Admin only
 
-| Filter | Type | Match |
-|--------|------|-------|
-| patientId | uuid | Exact |
-| doctorId | uuid | Exact |
-| status | int | Exact |
-| dateFrom | DateTime | >= |
-| dateTo | DateTime | <= |
+
+| Filter    | Type     | Match |
+| --------- | -------- | ----- |
+| patientId | uuid     | Exact |
+| doctorId  | uuid     | Exact |
+| status    | int      | Exact |
+| dateFrom  | DateTime | >=    |
+| dateTo    | DateTime | <=    |
+
 
 ---
 
@@ -1219,6 +1327,7 @@ Base path: `/api/doctors/{doctorId}/availability`
 ```
 
 Status transition flow:
+
 ```
 Scheduled (0) → Confirmed (1) → CheckedIn (2) → CheckedOut (3)
                                               ↘ Cancelled (4)
@@ -1227,8 +1336,254 @@ Scheduled (0) → Confirmed (1) → CheckedIn (2) → CheckedOut (3)
 ---
 
 #### `DELETE /api/appointments/{id}/soft` — Soft delete (Admin, Doctor)
+
 #### `PATCH  /api/appointments/{id}/soft` — Restore (Admin, Doctor)
+
 #### `DELETE /api/appointments/{id}` — Permanent delete (Admin, Doctor)
+
+---
+
+### EEG Tests
+
+EEG tests represent an ADHD screening study ordered for a patient. The full lifecycle is:
+
+```
+Create test → Upload EEG CSV file → Trigger AI analysis → Read results
+```
+
+Each test is linked to an existing **Appointment**. The AI analysis is performed by an internal Decision Support System (DSS) — the frontend only triggers it and reads back the result.
+
+---
+
+#### `POST /api/eeg-tests`
+
+**Auth required:** Admin, Doctor
+
+```json
+{
+  "appointmentId": "uuid",
+  "testDate": "2026-04-11T10:00:00Z",
+  "labId": "uuid (optional)",
+  "notes": "string (optional, max 1000)"
+}
+```
+
+**Response `200 OK`:** `EegTestResponse` (see shape below)
+
+**Errors:** `400` Validation, `404` Appointment or Lab not found
+
+---
+
+#### `GET /api/eeg-tests/{id}`
+
+**Auth required:** Admin, Doctor, LabTech
+
+**Response `200 OK`:** `EegTestResponse`
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "appointmentId": "uuid",
+    "patientId": "uuid",
+    "patient": { "id": "uuid", "firstName": "string", "lastName": "string" },
+    "doctorId": "uuid",
+    "doctor": { "id": "uuid", "firstName": "string", "lastName": "string" },
+    "labId": "uuid",
+    "lab": { "id": "uuid", "name": "string" },
+    "testDate": "2026-04-11T10:00:00Z",
+    "status": 0,
+    "notes": "string",
+    "adhdProbability": null,
+    "prediction": null,
+    "segmentsAnalyzed": null,
+    "adhdSegments": null,
+    "controlSegments": null,
+    "thetaBetaRatio": null,
+    "thetaPower": null,
+    "alphaPower": null,
+    "betaPower": null,
+    "deltaPower": null,
+    "analyzedAt": null,
+    "isDeleted": false,
+    "deletedAt": null,
+    "createdAt": "...",
+    "updatedAt": "..."
+  }
+}
+```
+
+> All result fields (`adhdProbability`, `prediction`, band powers, etc.) are `null` until the test reaches `status: 3` (Analyzed).
+
+**Errors:** `404` Not found
+
+---
+
+#### `GET /api/eeg-tests`
+
+**Auth required:** Admin, LabTech
+
+
+| Filter     | Type       | Match |
+| ---------- | ---------- | ----- |
+| status     | int (enum) | Exact |
+| pageNumber | int        | —     |
+| pageSize   | int        | —     |
+
+
+**Response:** Paged list of `EegTestResponse`
+
+---
+
+#### `GET /api/eeg-tests/patient/{patientId}`
+
+**Auth required:** Admin, Doctor  
+**Query:** `pageNumber`, `pageSize`, `status`
+
+**Response:** Paged list of `EegTestResponse` for that patient
+
+---
+
+#### `PUT /api/eeg-tests/{id}/status`
+
+**Auth required:** Admin, Doctor, LabTech
+
+```json
+{
+  "status": 4
+}
+```
+
+Use this to manually update the test status (e.g., cancel a test). The `/analyze` endpoint sets status automatically — do not manually set it to `Analyzed (3)`.
+
+**Errors:** `400` Validation, `404` Not found
+
+---
+
+#### `POST /api/eeg-tests/{testId}/upload`
+
+**Auth required:** Admin, Doctor, LabTech  
+**Content-Type:** `multipart/form-data`
+
+
+| Field  | Notes                                |
+| ------ | ------------------------------------ |
+| `file` | Required. Must be `.csv`, max 200 MB |
+
+
+**CSV requirements:**
+
+- Must have a header row with all 19 EEG channels:
+`Fp1, Fp2, F3, F4, C3, C4, P3, P4, O1, O2, F7, F8, T7, T8, P7, P8, Fz, Cz, Pz`
+- Minimum ~128 rows (1 second of data at 128 Hz)
+- Values in microvolts (floating point)
+
+**Response `200 OK`:** `EegDataResponse`
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "eegTestId": "uuid",
+    "uploadedAt": "2026-04-11T10:05:00Z",
+    "createdAt": "...",
+    "updatedAt": "..."
+  }
+}
+```
+
+After a successful upload, the test `status` automatically moves to `InProgress (1)`.
+
+**Errors:**
+
+
+| Status | Reason                                                                                      |
+| ------ | ------------------------------------------------------------------------------------------- |
+| `400`  | Not a CSV file                                                                              |
+| `400`  | Missing EEG channels in header (check channel names — must use T7/T8/P7/P8 not T3/T4/T5/T6) |
+| `400`  | Test is Cancelled                                                                           |
+| `404`  | Test not found                                                                              |
+
+
+---
+
+#### `GET /api/eeg-tests/{testId}/data`
+
+**Auth required:** Admin, Doctor, LabTech
+
+Returns the list of uploaded files for this test (most recent first).
+
+**Query:** `pageNumber`, `pageSize`
+
+**Response:** Paged list of `EegDataResponse`
+
+---
+
+#### `POST /api/eeg-tests/{testId}/analyze`
+
+**Auth required:** Admin, Doctor, LabTech
+
+No request body. Triggers the AI analysis on the most recently uploaded CSV file.
+
+**What happens:**
+
+1. The server reads the latest uploaded EEG file for this test
+2. Sends it to the DSS (Decision Support System) for AI inference
+3. The model segments the signal, runs EEGNet, computes ADHD probability and band powers
+4. Results are saved to the test record and `status` is set to `Analyzed (3)`
+
+**Response `200 OK`:** Full `EegTestResponse` with all result fields populated
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "status": 3,
+    "adhdProbability": 0.73,
+    "prediction": 0,
+    "segmentsAnalyzed": 47,
+    "adhdSegments": 34,
+    "controlSegments": 13,
+    "thetaBetaRatio": 2.41,
+    "thetaPower": 18.6,
+    "alphaPower": 9.3,
+    "betaPower": 7.7,
+    "deltaPower": 24.1,
+    "analyzedAt": "2026-04-11T10:06:32Z",
+    "...rest of fields..."
+  }
+}
+```
+
+**Result field reference:**
+
+
+| Field              | Type      | Description                                                  |
+| ------------------ | --------- | ------------------------------------------------------------ |
+| `adhdProbability`  | float 0–1 | Mean ADHD probability across all EEG segments. >= 0.5 → ADHD |
+| `prediction`       | int       | `0` = ADHD, `1` = Control                                    |
+| `segmentsAnalyzed` | int       | Total 1-second EEG segments analyzed                         |
+| `adhdSegments`     | int       | Segments classified as ADHD                                  |
+| `controlSegments`  | int       | Segments classified as Control                               |
+| `thetaBetaRatio`   | float     | Theta/Beta power ratio. Clinically elevated in ADHD (> 3.0)  |
+| `thetaPower`       | float     | Theta band power μV²/Hz (4–8 Hz)                             |
+| `alphaPower`       | float     | Alpha band power μV²/Hz (8–12 Hz)                            |
+| `betaPower`        | float     | Beta band power μV²/Hz (13–30 Hz)                            |
+| `deltaPower`       | float     | Delta band power μV²/Hz (0.5–4 Hz)                           |
+| `analyzedAt`       | datetime  | UTC timestamp when analysis completed                        |
+
+
+**Errors:**
+
+
+| Status | Reason                                                      |
+| ------ | ----------------------------------------------------------- |
+| `400`  | No file uploaded yet — call `/upload` first                 |
+| `400`  | Test is already Analyzed                                    |
+| `400`  | Test is Cancelled                                           |
+| `422`  | DSS rejected the file (e.g. too few rows, corrupted signal) |
+| `502`  | DSS inference service is unavailable                        |
+
 
 ---
 
@@ -1245,16 +1600,18 @@ GET /api/enums/patient-status
 GET /api/enums/allergy-severity
 GET /api/enums/appointment-type
 GET /api/enums/appointment-status
+GET /api/enums/eeg-test-status
+GET /api/enums/adhd-prediction
 ```
 
 Each returns:
+
 ```json
 {
   "isSuccess": true,
   "data": [
-    { "id": 0, "name": "NotSet", "value": "غير محدد" },
-    { "id": 1, "name": "Male", "value": "ذكر" },
-    { "id": 2, "name": "Female", "value": "انثى" }
+    { "id": 0, "name": "Ordered", "value": "مطلوب" },
+    { "id": 1, "name": "InProgress", "value": "قيد التنفيذ" }
   ]
 }
 ```
@@ -1263,27 +1620,34 @@ Each returns:
 
 ## Common Error Codes Summary
 
-| HTTP Status | Meaning |
-|-------------|---------|
-| `200` | Success |
-| `400` | Validation error, duplicate value, or business rule violation |
-| `401` | Missing or invalid token |
-| `403` | Valid token but insufficient role |
-| `404` | Resource not found |
-| `409` | Conflict (e.g., username or email already taken) |
-| `429` | Rate limit exceeded (100 requests/minute per IP) |
-| `500` | Internal server error |
+
+| HTTP Status | Meaning                                                                          |
+| ----------- | -------------------------------------------------------------------------------- |
+| `200`       | Success                                                                          |
+| `400`       | Validation error, duplicate value, or business rule violation                    |
+| `401`       | Missing or invalid token                                                         |
+| `403`       | Valid token but insufficient role                                                |
+| `404`       | Resource not found                                                               |
+| `409`       | Conflict (e.g., username or email already taken)                                 |
+| `422`       | Request understood but rejected by downstream service (e.g. DSS analysis failed) |
+| `429`       | Rate limit exceeded (100 requests/minute per IP)                                 |
+| `502`       | Internal service unavailable (e.g. DSS inference service is down)                |
+| `500`       | Internal server error                                                            |
+
 
 ---
 
 ## Quick Start Checklist
 
-- [ ] Store `accessToken` from login response in secure storage (httpOnly cookie or memory — avoid localStorage)
-- [ ] Attach `Authorization: Bearer <token>` to every request
-- [ ] Store `role` to drive UI permission checks client-side
-- [ ] Fetch all enums on app init and cache them
-- [ ] Use `id` (integer) when sending enum values; use `value` (Arabic string) for display
-- [ ] Use `multipart/form-data` for all endpoints that include an `image` field
-- [ ] Handle `isSuccess: false` globally and show `errorMessage` to the user
-- [ ] Use `totalPages` from paginated responses to build pagination controls
-- [ ] Remember: `PATCH /{id}/soft` = restore, `DELETE /{id}/soft` = soft delete, `DELETE /{id}` = permanent
+- Store `accessToken` from login response in secure storage (httpOnly cookie or memory — avoid localStorage)
+- Attach `Authorization: Bearer <token>` to every request
+- Store `role` to drive UI permission checks client-side
+- Fetch all enums on app init and cache them — including `eeg-test-status` and `adhd-prediction`
+- Use `id` (integer) when sending enum values; use `value` (Arabic string) for display
+- Use `multipart/form-data` for endpoints that include an `image` or `file` field
+- Handle `isSuccess: false` globally and show `errorMessage` to the user
+- Use `totalPages` from paginated responses to build pagination controls
+- Remember: `PATCH /{id}/soft` = restore, `DELETE /{id}/soft` = soft delete, `DELETE /{id}` = permanent
+- EEG flow: Create → Upload CSV → Analyze — do not skip steps; analyze returns `400` if no file is uploaded
+- EEG result fields are all `null` until `status = 3` (Analyzed) — guard against null before rendering charts
+

@@ -132,7 +132,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, onMounted } from 'vue';
+  import { ref, onMounted, computed } from 'vue';
   import { useAdminStore } from '../../stores/admin.store';
   import AppTable from '../../components/ui/AppTable.vue';
   import AppButton from '../../components/ui/AppButton.vue';
@@ -157,17 +157,39 @@
     { key: 'actions', label: 'Actions', class: 'text-end' },
   ];
 
-  const formFields: FormFieldRow[] = [
-    [
-      { key: 'FirstName', label: 'First Name', type: 'text', placeholder: 'Enter first name' },
-      { key: 'LastName', label: 'Last Name', type: 'text', placeholder: 'Enter last name' },
-    ],
-    [
-      { key: 'Username', label: 'Username', type: 'text', placeholder: 'Enter username' },
-      { key: 'Email', label: 'Email', type: 'email', placeholder: 'Enter email' },
-    ],
-    [{ key: 'Password', label: 'Password', type: 'password', placeholder: 'Enter password' }],
-  ];
+  const formFields = computed<FormFieldRow[]>(() => {
+    const fields: FormFieldRow[] = [
+      [
+        { key: 'FirstName', label: 'First Name', type: 'text', placeholder: 'Enter first name' },
+        { key: 'LastName', label: 'Last Name', type: 'text', placeholder: 'Enter last name' },
+      ],
+      [
+        { key: 'Username', label: 'Username', type: 'text', placeholder: 'Enter username' },
+        { key: 'Email', label: 'Email', type: 'email', placeholder: 'Enter email' },
+      ],
+    ];
+
+    if (editingAdmin.value) {
+      fields.push([
+        {
+          key: 'CurrentPassword',
+          label: 'Current Password',
+          type: 'password',
+          placeholder: 'Enter current password to change',
+        },
+        {
+          key: 'NewPassword',
+          label: 'New Password',
+          type: 'password',
+          placeholder: 'Enter new password',
+        },
+      ]);
+    } else {
+      fields.push([{ key: 'Password', label: 'Password', type: 'password', placeholder: 'Enter password' }]);
+    }
+
+    return fields;
+  });
 
   const isModalOpen = ref(false);
   const editingAdmin = ref<any>(null);

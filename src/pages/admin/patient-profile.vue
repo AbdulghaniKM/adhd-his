@@ -125,83 +125,151 @@
 
       <!-- Vitals History Tab -->
       <template #vitals>
-        <div class="bg-surface border-border overflow-hidden rounded-3xl border shadow-sm">
-          <div class="flex items-center justify-between border-b border-border p-6">
-            <h3 class="text-text text-lg font-bold">Vitals Log</h3>
+        <div class="space-y-6">
+          <div class="bg-surface border-border flex items-center justify-between rounded-3xl border p-6 shadow-sm">
+            <div>
+              <h3 class="text-text text-lg font-bold">Vitals History</h3>
+              <p class="text-text-secondary text-xs">A log of all clinical vital signs</p>
+            </div>
             <AppButton
               v-if="!isReadOnly"
+              variant="primary"
               label="Record Vitals"
               size="sm"
               icon="icon-[heroicons-outline--plus]"
               @click="isVitalsModalOpen = true"
             />
           </div>
-          <AppTable
-            :columns="vitalsColumns"
-            :data="vitalsStore.vitals"
-            :loading="vitalsStore.loading"
-          >
-            <template #cell-recordedAt="{ value }">
-              {{ formatDate(value, true) }}
-            </template>
-            <template #cell-actions="{ row }">
-              <AppButton
-                v-if="!isReadOnly"
-                variant="ghost"
-                size="sm"
-                icon="icon-[heroicons-outline--trash]"
-                class="text-error! hover:bg-error/10!"
-                icon-only
-                @click="confirmDeleteVital(row)"
-              />
-            </template>
-          </AppTable>
+
+          <div v-if="vitalsStore.vitals.length" class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div
+              v-for="vital in vitalsStore.vitals"
+              :key="vital.id"
+              class="bg-surface border-border group relative flex flex-col gap-4 rounded-3xl border p-5 transition-all hover:shadow-md"
+            >
+              <div class="flex items-center justify-between border-b border-border/50 pb-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="bg-primary/10 text-primary flex size-9 items-center justify-center rounded-xl">
+                    <AppIcon name="icon-[heroicons-outline--clock]" :size="1.125" />
+                  </div>
+                  <span class="text-text text-sm font-bold">{{ formatDate(vital.recordedAt, true) }}</span>
+                </div>
+                <AppButton
+                  v-if="!isReadOnly"
+                  variant="ghost"
+                  size="sm"
+                  icon="icon-[heroicons-outline--trash]"
+                  class="text-error! opacity-0 transition-opacity hover:bg-error/10! group-hover:opacity-100"
+                  icon-only
+                  @click="confirmDeleteVital(vital)"
+                />
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1">
+                  <p class="text-text-secondary text-[10px] font-bold tracking-widest uppercase opacity-60">Heart Rate</p>
+                  <p class="text-text text-sm font-black">{{ vital.heartRate }} <span class="text-[10px] font-medium opacity-60">BPM</span></p>
+                </div>
+                <div class="space-y-1">
+                  <p class="text-text-secondary text-[10px] font-bold tracking-widest uppercase opacity-60">Blood Pressure</p>
+                  <p class="text-text text-sm font-black">{{ vital.bloodPressure }}</p>
+                </div>
+                <div class="space-y-1">
+                  <p class="text-text-secondary text-[10px] font-bold tracking-widest uppercase opacity-60">Weight</p>
+                  <p class="text-text text-sm font-black">{{ vital.weight }} <span class="text-[10px] font-medium opacity-60">kg</span></p>
+                </div>
+                <div class="space-y-1">
+                  <p class="text-text-secondary text-[10px] font-bold tracking-widest uppercase opacity-60">Height</p>
+                  <p class="text-text text-sm font-black">{{ vital.height }} <span class="text-[10px] font-medium opacity-60">cm</span></p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="bg-surface border-border flex flex-col items-center justify-center rounded-3xl border py-20 text-center shadow-sm">
+            <div class="bg-muted text-text-secondary mb-4 flex size-16 items-center justify-center rounded-full opacity-40">
+              <AppIcon name="icon-[heroicons-outline--heart]" :size="2" />
+            </div>
+            <p class="text-text-secondary text-sm italic">No vitals recorded in the history log.</p>
+          </div>
         </div>
       </template>
 
       <!-- Allergies Tab -->
       <template #allergies>
-        <div class="bg-surface border-border overflow-hidden rounded-3xl border shadow-sm">
-          <div class="flex items-center justify-between border-b border-border p-6">
-            <h3 class="text-text text-lg font-bold">Allergy Profile</h3>
+        <div class="space-y-6">
+          <div class="bg-surface border-border flex items-center justify-between rounded-3xl border p-6 shadow-sm">
+            <div>
+              <h3 class="text-text text-lg font-bold">Allergy Profile</h3>
+              <p class="text-text-secondary text-xs">Identified allergens and reactions</p>
+            </div>
             <AppButton
               v-if="!isReadOnly"
+              variant="primary"
               label="Add Allergy"
               size="sm"
               icon="icon-[heroicons-outline--plus]"
               @click="openAddAllergyModal"
             />
           </div>
-          <AppTable
-            :columns="allergyColumns"
-            :data="allergyStore.allergies"
-            :loading="allergyStore.loading"
-          >
-            <template #cell-severity="{ value }">
-              <span class="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider" :class="severityClasses[value]">
-                {{ mapAlergySeverity(value) }}
-              </span>
-            </template>
-            <template #cell-actions="{ row }">
-              <div v-if="!isReadOnly" class="flex items-center justify-end gap-2">
-                <AppButton
-                  variant="ghost"
-                  size="sm"
-                  icon="icon-[heroicons-outline--pencil]"
-                  icon-only
-                  @click="openEditAllergyModal(row)"
-                />
-                <AppButton
-                  variant="ghost"
-                  size="sm"
-                  icon="icon-[heroicons-outline--trash]"
-                  class="text-error! hover:bg-error/10!"
-                  icon-only
-                  @click="confirmDeleteAllergy(row)"
-                />
+
+          <div v-if="allergyStore.allergies.length" class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div
+              v-for="allergy in allergyStore.allergies"
+              :key="allergy.id"
+              class="bg-surface border-border group relative overflow-hidden rounded-3xl border p-5 transition-all hover:shadow-md"
+            >
+              <div
+                class="absolute inset-y-0 start-0 w-1"
+                :class="{
+                  'bg-success': allergy.severity === AlergySeverity.MILD,
+                  'bg-amber-500': allergy.severity === AlergySeverity.MODERATE,
+                  'bg-error': allergy.severity === AlergySeverity.SEVERE
+                }"
+              ></div>
+              
+              <div class="flex items-start justify-between">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h4 class="text-text text-base font-black tracking-tight">{{ allergy.allergen }}</h4>
+                    <span
+                      class="rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-widest"
+                      :class="severityClasses[allergy.severity]"
+                    >
+                      {{ mapAlergySeverity(allergy.severity) }}
+                    </span>
+                  </div>
+                  <p class="text-text-secondary mt-1 text-xs leading-relaxed">
+                    <span class="font-bold">Reaction:</span> {{ allergy.reaction }}
+                  </p>
+                </div>
+
+                <div v-if="!isReadOnly" class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                  <AppButton
+                    variant="ghost"
+                    size="sm"
+                    icon="icon-[heroicons-outline--pencil]"
+                    icon-only
+                    class="hover:bg-muted!"
+                    @click="openEditAllergyModal(allergy)"
+                  />
+                  <AppButton
+                    variant="ghost"
+                    size="sm"
+                    icon="icon-[heroicons-outline--trash]"
+                    class="text-error! hover:bg-error/10!"
+                    icon-only
+                    @click="confirmDeleteAllergy(allergy)"
+                  />
+                </div>
               </div>
-            </template>
-          </AppTable>
+            </div>
+          </div>
+          <div v-else class="bg-surface border-border flex flex-col items-center justify-center rounded-3xl border py-20 text-center shadow-sm">
+            <div class="bg-muted text-text-secondary mb-4 flex size-16 items-center justify-center rounded-full opacity-40">
+              <AppIcon name="icon-[heroicons-outline--no-symbol]" :size="2" />
+            </div>
+            <p class="text-text-secondary text-sm italic">No known allergies for this patient.</p>
+          </div>
         </div>
       </template>
     </AppTabs>

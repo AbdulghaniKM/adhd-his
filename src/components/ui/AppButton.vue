@@ -83,14 +83,14 @@
     if (props.iconOnly && !props.fullWidth) {
       return {
         xs: 'size-6 text-xs',
-        sm: 'size-8 text-sm',
+        sm: 'size-8 text-[13px]',
         md: 'size-10 text-sm',
         lg: 'size-12 text-base',
       }[props.size];
     }
     return {
       xs: 'h-7 px-2.5 text-xs',
-      sm: 'h-8 px-3 text-sm',
+      sm: 'h-8 px-2.5 text-[13px]',
       md: 'h-10 px-4 text-sm',
       lg: 'h-12 px-6 text-base',
     }[props.size];
@@ -102,22 +102,22 @@
   });
 
   const roundedClass = computed(() => {
-    if (props.iconOnly) return 'rounded-lg';
-    return { xs: 'rounded-md', sm: 'rounded-lg', md: 'rounded-lg', lg: 'rounded-xl' }[props.size];
+    if (props.iconOnly) return 'rounded-md';
+    return { xs: 'rounded', sm: 'rounded-md', md: 'rounded-md', lg: 'rounded-lg' }[props.size];
   });
 
   const variantClass = computed(
     () =>
       ({
-        primary: 'bg-primary text-white shadow-sm hover:bg-primary/90 hover:shadow-md',
-        secondary: 'bg-secondary text-white shadow-sm hover:bg-secondary/90 hover:shadow-md',
+        primary: 'bg-primary text-white shadow-xs hover:bg-primary/90 hover:shadow-sm',
+        secondary: 'bg-secondary text-white shadow-xs hover:bg-secondary/90 hover:shadow-sm',
         ghost: 'text-text-secondary hover:bg-muted hover:text-text',
         muted: 'bg-muted/50 text-text-secondary hover:bg-muted hover:text-text',
         danger: 'bg-error/10 text-error hover:bg-error/20',
         success: 'bg-success/10 text-success hover:bg-success/20',
         surface:
-          'bg-surface text-primary border border-border shadow-sm hover:bg-muted hover:shadow',
-        outline: 'border border-border bg-transparent text-text hover:bg-muted',
+          'bg-surface text-primary border border-border shadow-xs hover:bg-muted hover:shadow-sm',
+        outline: 'border border-border bg-surface text-text shadow-xs hover:bg-muted',
       })[props.variant],
   );
 

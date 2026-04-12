@@ -45,7 +45,7 @@
           :placeholder="field.placeholder"
           :readonly="field.readonly"
           :error="errors[field.key]"
-          :searchable="field.searchable ?? true"
+          :searchable="field.searchable ?? ((field.items?.length || 0) > 8)"
         />
 
         <!-- Phone Input -->
@@ -79,13 +79,13 @@
     <!-- Submit Button -->
     <div class="mt-4 flex shrink-0 justify-end gap-4">
       <slot name="actions">
-        <button
+        <AppButton
           type="submit"
-          :disabled="isSubmitting"
-          class="rounded-lg bg-primary px-6 py-2.5 font-semibold text-white transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {{ isSubmitting ? 'Submitting...' : 'Submit' }}
-        </button>
+          variant="primary"
+          :loading="isSubmitting"
+          :label="isSubmitting ? 'Submitting...' : 'Submit'"
+          class="px-8"
+        />
       </slot>
     </div>
   </form>
@@ -96,6 +96,7 @@ import { ref } from 'vue';
 import { z, type ZodType } from 'zod';
 import api from '../../../plugins/axios';
 import { useFormValidation } from '../../../composables/useFormValidation';
+import AppButton from '../AppButton.vue';
 import InputField from './InputField.vue';
 import Textarea from './Textarea.vue';
 import Select from './Select.vue';

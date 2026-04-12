@@ -131,14 +131,14 @@
         >
           <!-- Header (Modern) -->
           <thead>
-            <tr class="bg-muted/20 border-border/40 border-b transition-colors">
-              <th v-if="selectable" class="w-14 px-5 py-4 text-start">
+            <tr class="bg-surface border-border/40 border-b transition-colors">
+              <th v-if="selectable" class="w-14 px-4 py-3 text-start">
                 <div class="flex items-center">
                   <input
                     type="checkbox"
                     :checked="isAllSelected"
                     :indeterminate="isPartiallySelected"
-                    class="accent-primary size-4.5 cursor-pointer rounded-lg transition-all"
+                    class="accent-primary size-4.5 cursor-pointer rounded transition-all"
                     @change="toggleSelectAll"
                   />
                 </div>
@@ -147,10 +147,10 @@
               <th
                 v-for="column in visibleColumns"
                 :key="column.key"
-                class="px-5 py-4 text-start text-[10px] font-bold tracking-[0.15em] uppercase transition-all"
+                class="px-4 py-3 text-start text-sm font-semibold text-text transition-all"
                 :class="[
                   column.class,
-                  column.key === 'actions' ? 'sticky-actions-th w-px bg-muted/30 backdrop-blur-md' : 'text-text-secondary/70',
+                  column.key === 'actions' ? 'sticky-actions-th w-px bg-surface backdrop-blur-md' : '',
                 ]"
               >
                 <button
@@ -162,10 +162,10 @@
                 >
                   <span>{{ column.label }}</span>
                   <div
-                    class="flex size-5.5 items-center justify-center rounded-lg transition-all duration-300"
+                    class="flex size-5.5 items-center justify-center rounded-md transition-all duration-300"
                     :class="
                       sortKey === column.key
-                        ? 'bg-primary shadow-primary/25 text-white shadow-md scale-110'
+                        ? 'bg-primary/10 text-primary scale-110'
                         : 'bg-muted/50 text-text-secondary opacity-0 group-hover:opacity-100 scale-90'
                     "
                   >
@@ -193,10 +193,10 @@
                 :key="`skeleton-${i}`"
                 class="animate-pulse"
               >
-                <td v-if="selectable" class="px-5 py-4">
-                  <div class="bg-muted mx-auto size-4.5 rounded-lg" />
+                <td v-if="selectable" class="px-4 py-3">
+                  <div class="bg-muted mx-auto size-4.5 rounded" />
                 </td>
-                <td v-for="column in visibleColumns" :key="column.key" class="px-5 py-4">
+                <td v-for="column in visibleColumns" :key="column.key" class="px-4 py-3">
                   <div
                     class="bg-muted h-4 rounded-full"
                     :class="column.key === 'actions' ? 'ms-auto w-16' : 'w-full max-w-[12rem]'"
@@ -209,7 +209,7 @@
             <tr v-else-if="displayData.length === 0">
               <td :colspan="visibleColumns.length + (selectable ? 1 : 0)" class="py-24 text-center">
                 <div class="flex flex-col items-center gap-6">
-                  <div class="bg-muted/30 flex size-20 items-center justify-center rounded-[2.5rem] shadow-inner ring-1 ring-border/20">
+                  <div class="bg-muted/30 flex size-20 items-center justify-center rounded-2xl shadow-inner ring-1 ring-border/20">
                     <AppIcon
                       name="icon-[heroicons-outline--document-magnifying-glass]"
                       :size="2.5"
@@ -240,15 +240,15 @@
               v-for="(row, index) in displayData"
               v-else
               :key="getRowKey(row, index)"
-              class="table-row-data group hover:bg-primary/[0.02] transition-all duration-200"
+              class="table-row-data group hover:bg-muted/30 transition-all duration-200"
               :class="isRowSelected(row) ? 'bg-primary/[0.04]' : ''"
             >
-              <td v-if="selectable" class="px-5 py-4">
+              <td v-if="selectable" class="px-4 py-3">
                 <div class="flex items-center">
                   <input
                     type="checkbox"
                     :checked="isRowSelected(row)"
-                    class="accent-primary size-4.5 cursor-pointer rounded-lg transition-all"
+                    class="accent-primary size-4.5 cursor-pointer rounded transition-all"
                     @change="toggleRowSelection(row)"
                   />
                 </div>
@@ -257,7 +257,7 @@
               <td
                 v-for="column in visibleColumns"
                 :key="column.key"
-                class="text-text min-w-0 px-5 py-4 text-sm whitespace-nowrap transition-all"
+                class="text-text min-w-0 px-4 py-3 text-[13px] whitespace-nowrap transition-all"
                 :class="[
                   column.class,
                   column.key === 'actions' ? 'sticky-actions-td w-px bg-surface group-hover:bg-surface transition-colors' : '',
