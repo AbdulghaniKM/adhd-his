@@ -133,6 +133,7 @@
   const quickActions = [
     { label: 'Manage Units', icon: 'icon-[heroicons-outline--beaker]', to: '/lab-tech/labs' },
     { label: 'Patient Registry', icon: 'icon-[heroicons-outline--identification]', to: '/lab-tech/patients' },
+    { label: 'EEG Screening Hub', icon: 'icon-[heroicons-outline--document-chart-bar]', to: '/lab-tech/eeg-tests' },
     { label: 'View Departments', icon: 'icon-[heroicons-outline--building-library]', to: '/lab-tech/departments' },
   ];
 </script>

@@ -194,8 +194,10 @@
   import AppForm from '../../components/ui/Fields/AppForm.vue';
   import AppTabs from '../../components/ui/AppTabs.vue';
   import { useToast } from '../../composables/useToast';
-  import { mapWeekDay } from '../../utils/enum-mapper';
+  import { useEnums } from '../../composables/useEnums';
   import { Gender, BloodType, WeekDays } from '../../types/enums.types';
+
+  const { mapWeekDay, bloodTypeLabels, genderLabels, weekDayLabels } = useEnums();
   import type { FormFieldRow } from '../../types/form';
   import type { TableColumn } from '../../components/ui/AppTable.vue';
 
@@ -279,24 +281,18 @@
         label: 'Gender',
         type: 'select',
         items: [
-          { label: 'Male', value: Gender.MALE },
-          { label: 'Female', value: Gender.FEMALE },
+          { label: genderLabels.value[Gender.MALE], value: Gender.MALE },
+          { label: genderLabels.value[Gender.FEMALE], value: Gender.FEMALE },
         ],
       },
       {
         key: 'BloodType',
         label: 'Blood Type',
         type: 'select',
-        items: [
-          { label: 'A+', value: BloodType.A_POSITIVE },
-          { label: 'A-', value: BloodType.A_NEGATIVE },
-          { label: 'B+', value: BloodType.B_POSITIVE },
-          { label: 'B-', value: BloodType.B_NEGATIVE },
-          { label: 'AB+', value: BloodType.AB_POSITIVE },
-          { label: 'AB-', value: BloodType.AB_NEGATIVE },
-          { label: 'O+', value: BloodType.O_POSITIVE },
-          { label: 'O-', value: BloodType.O_NEGATIVE },
-        ],
+        items: Object.entries(bloodTypeLabels.value).map(([value, label]) => ({
+          label,
+          value: Number(value),
+        })),
       },
     ],
     [
@@ -472,6 +468,15 @@
           DepartmentId: newProfile.departmentId,
           ConsultationCharge: newProfile.consultationCharge,
           YearsOfExperience: newProfile.yearsOfExperience,
+          MedicalLicenseNumber: newProfile.medicalLicenseNumber,
+          Bio: newProfile.bio,
+        };
+      }
+    },
+    { immediate: true },
+  );
+</script>
+perience,
           MedicalLicenseNumber: newProfile.medicalLicenseNumber,
           Bio: newProfile.bio,
         };

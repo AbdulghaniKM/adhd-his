@@ -8,5 +8,7 @@ export * from './lab-tech';
 export * from './lab';
 export * from './department';
 export * from './appointment';
+export * from './eeg-test';
+export * from './enum';
 export * from './form';
 export * from './text';

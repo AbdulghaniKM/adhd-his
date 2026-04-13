@@ -154,9 +154,11 @@
   import AppTable from '../../components/ui/AppTable.vue';
   import AppButton from '../../components/ui/AppButton.vue';
   import { useToast } from '../../composables/useToast';
-  import { mapAppointmentType, mapAppointmentStatus } from '../../utils/enum-mapper';
+  import { useEnums } from '../../composables/useEnums';
   import { formatDate } from '../../utils/format-date';
   import { AppointmentStatus, AppointmentType } from '../../types/enums.types';
+
+  const { mapAppointmentType, mapAppointmentStatus } = useEnums();
   import type { TableColumn } from '../../components/ui/AppTable.vue';
 
   const authStore = AuthStore();

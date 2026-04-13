@@ -2,29 +2,22 @@
   <div class="space-y-6 p-6">
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-text text-2xl font-bold">Medical Staff (Doctors)</h1>
-        <p class="text-text-secondary text-sm">Manage doctor profiles and specializations</p>
+        <h1 class="text-text text-2xl font-bold">Doctor Management</h1>
+        <p class="text-text-secondary text-sm">Manage hospital clinical staff and departments</p>
       </div>
-      <div class="flex items-center gap-2">
-        <AppButton
-          label="Register Doctor"
-          icon="icon-[heroicons-outline--user-plus]"
-          @click="openCreateModal"
-        />
-      </div>
+      <AppButton
+        variant="primary"
+        label="Add Doctor"
+        icon="icon-[heroicons-outline--user-plus]"
+        @click="openCreateModal"
+      />
     </div>
 
     <AppTable
-      v-model:selected="selectedDoctors"
       :columns="columns"
       :data="doctorStore.doctors"
       :loading="doctorStore.loading"
       searchable
-      selectable
-      exportable
-      export-file-name="doctors-list"
-      show-column-toggle
-      columns-visibility-key="doctor-list"
       search-placeholder="Search doctors..."
       server-paginated
       :page-number="doctorStore.pageNumber"
@@ -36,18 +29,16 @@
     >
       <template #cell-name="{ row }">
         <div class="flex items-center gap-3">
-          <div class="bg-primary/10 text-primary size-8 overflow-hidden rounded-full">
+          <div class="bg-primary/10 size-8 overflow-hidden rounded-full">
             <img v-if="row.imageUrl" :src="row.imageUrl" alt="" class="size-full object-cover" />
-            <div v-else class="flex size-full items-center justify-center text-xs font-bold">
+            <div
+              v-else
+              class="text-primary flex size-full items-center justify-center text-xs font-bold"
+            >
               {{ row.firstName[0] }}{{ row.lastName[0] }}
             </div>
           </div>
-          <div>
-            <div class="text-text font-medium">{{ row.firstName }} {{ row.lastName }}</div>
-            <div class="text-text-secondary text-xs">
-              {{ row.department?.title || 'No Department' }}
-            </div>
-          </div>
+          <span class="text-text font-medium">Dr. {{ row.firstName }} {{ row.lastName }}</span>
         </div>
       </template>
 
@@ -57,15 +48,6 @@
 
       <template #cell-bloodType="{ value }">
         {{ mapBloodType(value) }}
-      </template>
-
-      <template #cell-isActive="{ value }">
-        <span
-          class="border rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider transition-all"
-          :class="value ? 'bg-success/10 text-success border-success/20' : 'bg-muted text-text-secondary border-border/40'"
-        >
-          {{ value ? 'Active' : 'Inactive' }}
-        </span>
       </template>
 
       <template #cell-actions="{ row }">
@@ -116,7 +98,7 @@
     <!-- Create/Edit Modal -->
     <AppModal
       :is-open="isModalOpen"
-      :title="editingDoctor ? 'Edit Doctor Profile' : 'Register New Doctor'"
+      :title="editingDoctor ? 'Edit Doctor Profile' : 'Add New Doctor'"
       max-width="lg"
       @close="isModalOpen = false"
     >
@@ -134,8 +116,8 @@
       :title="isHardDelete ? 'Delete Forever' : 'Archive Doctor'"
       :message="
         isHardDelete
-          ? `Are you sure you want to PERMANENTLY delete Dr. ${doctorToDelete?.firstName}? This action cannot be undone.`
-          : `Are you sure you want to archive Dr. ${doctorToDelete?.firstName}? You can restore it later.`
+          ? `Are you sure you want to PERMANENTLY delete Dr. ${doctorToDelete?.lastName}? This cannot be undone.`
+          : `Are you sure you want to archive Dr. ${doctorToDelete?.lastName}?`
       "
       @close="isDeleteModalOpen = false"
       @confirm="handleDelete"
@@ -153,17 +135,17 @@
   import AppForm from '../../components/ui/Fields/AppForm.vue';
   import ConfirmDangerModal from '../../components/ui/ConfirmDangerModal.vue';
   import { useToast } from '../../composables/useToast';
-  import { mapGender, mapBloodType, BloodTypeLabels } from '../../utils/enum-mapper';
+  import { useEnums } from '../../composables/useEnums';
   import { formatDate } from '../../utils/format-date';
   import { Gender, BloodType } from '../../types/enums.types';
   import type { TableColumn } from '../../components/ui/AppTable.vue';
   import type { FormFieldRow } from '../../types/form';
 
   const doctorStore = useDoctorStore();
-  const departmentStore = useDepartmentStore();
+  const deptStore = useDepartmentStore();
   const { success, error } = useToast();
 
-  const isHardDelete = ref(false);
+  const { mapGender, mapBloodType, bloodTypeLabels, genderLabels } = useEnums();
 
   const columns: TableColumn[] = [
     {
@@ -173,23 +155,26 @@
       exportFormatter: (row) => `${row.firstName} ${row.lastName}`,
     },
     { key: 'email', label: 'Email', sortable: true },
-    { key: 'phone', label: 'Phone', defaultHidden: true },
-    { key: 'medicalLicenseNumber', label: 'License' },
-    { key: 'department.title', label: 'Department', defaultHidden: true },
-    { key: 'gender', label: 'Gender', defaultHidden: true, exportFormatter: (row) => mapGender(row.gender) },
-    { key: 'bloodType', label: 'Blood Type', defaultHidden: true, exportFormatter: (row) => mapBloodType(row.bloodType) },
-    { key: 'yearsOfExperience', label: 'Experience', defaultHidden: true },
-    { key: 'consultationCharge', label: 'Charge', defaultHidden: true },
-    { key: 'location', label: 'Location', defaultHidden: true },
-    { key: 'birthDate', label: 'Birth Date', defaultHidden: true, formatter: formatDate },
-    { key: 'isActive', label: 'Status' },
+    { key: 'department.title', label: 'Department' },
+    { key: 'yearsOfExperience', label: 'Exp. (Years)', sortable: true },
+    {
+      key: 'gender',
+      label: 'Gender',
+      defaultHidden: true,
+      exportFormatter: (row) => mapGender(row.gender),
+    },
+    {
+      key: 'bloodType',
+      label: 'Blood Type',
+      defaultHidden: true,
+      exportFormatter: (row) => mapBloodType(row.bloodType),
+    },
+    { key: 'medicalLicenseNumber', label: 'License', defaultHidden: true },
     { key: 'actions', label: 'Actions', class: 'text-end' },
   ];
 
-  const selectedDoctors = ref<any[]>([]);
-
   const departmentOptions = computed(() =>
-    departmentStore.departments.map((d) => ({ label: d.title, value: d.id })),
+    deptStore.departments.map((d) => ({ label: d.title, value: d.id })),
   );
 
   const formFields = computed<FormFieldRow[]>(() => {
@@ -216,15 +201,15 @@
           label: 'Gender',
           type: 'select',
           items: [
-            { label: 'Male', value: Gender.MALE },
-            { label: 'Female', value: Gender.FEMALE },
+            { label: genderLabels.value[Gender.MALE], value: Gender.MALE },
+            { label: genderLabels.value[Gender.FEMALE], value: Gender.FEMALE },
           ],
         },
         {
           key: 'BloodType',
           label: 'Blood Type',
           type: 'select',
-          items: Object.entries(BloodTypeLabels).map(([value, label]) => ({
+          items: Object.entries(bloodTypeLabels.value).map(([value, label]) => ({
             label,
             value: Number(value),
           })),
@@ -248,14 +233,7 @@
         },
       ]);
     } else {
-      fields.push([
-        {
-          key: 'Password',
-          label: 'Account Password',
-          type: 'password',
-          placeholder: 'Enter password',
-        },
-      ]);
+      fields.push([{ key: 'Password', label: 'Password', type: 'password' }]);
     }
 
     return fields;
@@ -267,14 +245,15 @@
 
   const isDeleteModalOpen = ref(false);
   const doctorToDelete = ref<any>(null);
+  const isHardDelete = ref(false);
 
   onMounted(() => {
     doctorStore.fetchDoctors();
-    departmentStore.fetchDepartments();
+    deptStore.fetchDepartments();
   });
 
   const handlePageChange = (payload: any) => {
-    doctorStore.fetchDoctors({ ...payload });
+    doctorStore.fetchDoctors(payload);
   };
 
   const handleSearch = (query: string) => {
@@ -283,7 +262,11 @@
 
   const openCreateModal = () => {
     editingDoctor.value = null;
-    formData.value = { Gender: Gender.MALE, BloodType: BloodType.O_POSITIVE, YearsOfExperience: 0 };
+    formData.value = {
+      Gender: Gender.MALE,
+      BloodType: BloodType.O_POSITIVE,
+      YearsOfExperience: 0,
+    };
     isModalOpen.value = true;
   };
 
@@ -307,14 +290,13 @@
   const handleSubmit = async (data: any) => {
     let res;
     if (editingDoctor.value) {
-      if (!data.Password) delete data.Password;
       res = await doctorStore.updateDoctor(editingDoctor.value.id, data);
     } else {
       res = await doctorStore.createDoctor(data);
     }
 
     if (res) {
-      success(editingDoctor.value ? 'Profile updated' : 'Doctor registered');
+      success(editingDoctor.value ? 'Doctor updated' : 'Doctor added');
       isModalOpen.value = false;
     } else {
       error(doctorStore.error || 'Operation failed');
@@ -331,7 +313,9 @@
     if (!doctorToDelete.value) return;
     const res = await doctorStore.deleteDoctor(doctorToDelete.value.id, isHardDelete.value);
     if (res) {
-      success(isHardDelete.value ? 'Doctor deleted forever' : 'Doctor archived');
+      success(
+        isHardDelete.value ? 'Doctor permanently deleted' : 'Doctor archived',
+      );
       isDeleteModalOpen.value = false;
     } else {
       error(doctorStore.error || 'Delete failed');

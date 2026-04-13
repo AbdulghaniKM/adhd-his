@@ -154,9 +154,11 @@
   import AppModal from '../../components/ui/AppModal.vue';
   import ConfirmDangerModal from '../../components/ui/ConfirmDangerModal.vue';
   import { useToast } from '../../composables/useToast';
-  import { mapAppointmentStatus, mapAppointmentType, AppointmentStatusLabels } from '../../utils/enum-mapper';
+  import { useEnums } from '../../composables/useEnums';
   import { formatDate } from '../../utils/format-date';
   import { AppointmentStatus } from '../../types/enums.types';
+
+  const { mapAppointmentStatus, mapAppointmentType, appointmentStatusLabels } = useEnums();
   import type { TableColumn } from '../../components/ui/AppTable.vue';
 
   const appointmentStore = useAppointmentStore();

@@ -144,6 +144,7 @@ const adminLinks = [
   { label: 'Units', to: '/admin/labs', icon: 'icon-[heroicons-outline--beaker]' },
   { label: 'Depts', to: '/admin/departments', icon: 'icon-[heroicons-outline--building-office]' },
   { label: 'Calendar', to: '/admin/appointments', icon: 'icon-[heroicons-outline--calendar]' },
+  { label: 'EEG Tests', to: '/admin/eeg-tests', icon: 'icon-[heroicons-outline--document-chart-bar]' },
 ];
 
 const doctorLinks = [
@@ -151,6 +152,7 @@ const doctorLinks = [
   { label: 'Patients', to: '/doctor/patients', icon: 'icon-[heroicons-outline--users]' },
   { label: 'Units', to: '/doctor/labs', icon: 'icon-[heroicons-outline--beaker]' },
   { label: 'Calendar', to: '/doctor/appointments', icon: 'icon-[heroicons-outline--calendar]' },
+  { label: 'EEG Tests', to: '/doctor/eeg-tests', icon: 'icon-[heroicons-outline--document-chart-bar]' },
 ];
 
 const labTechLinks = [
@@ -158,6 +160,7 @@ const labTechLinks = [
   { label: 'Patients', to: '/lab-tech/patients', icon: 'icon-[heroicons-outline--users]' },
   { label: 'Units', to: '/lab-tech/labs', icon: 'icon-[heroicons-outline--beaker]' },
   { label: 'Depts', to: '/lab-tech/departments', icon: 'icon-[heroicons-outline--building-office]' },
+  { label: 'EEG Tests', to: '/lab-tech/eeg-tests', icon: 'icon-[heroicons-outline--document-chart-bar]' },
 ];
 
 const navigationGroups = computed(() => {

@@ -306,9 +306,17 @@
   import { AuthStore } from '../../stores/auth.store';
   import { useToast } from '../../composables/useToast';
   import { formatDate } from '../../utils/format-date';
-  import { mapPatientStatus, mapGender, mapBloodType, mapAppointmentStatus, mapAlergySeverity } from '../../utils/enum-mapper';
+  import { useEnums } from '../../composables/useEnums';
   import { Gender, BloodType, PatientStatus, AppRole, AlergySeverity, AppointmentStatus } from '../../types/enums.types';
-  import { BloodTypeLabels } from '../../utils/enum-mapper';
+
+  const { 
+    mapPatientStatus, 
+    mapGender, 
+    mapBloodType, 
+    mapAppointmentStatus, 
+    mapAllergySeverity: mapAlergySeverity,
+    bloodTypeLabels
+  } = useEnums();
   import { useDoctorStore } from '../../stores/doctor.store';
   import AppTabs from '../../components/ui/AppTabs.vue';
   import AppTable from '../../components/ui/AppTable.vue';
@@ -325,17 +333,62 @@
   const vitalsStore = useVitalsStore();
   const allergyStore = useAllergyStore();
   const doctorStore = useDoctorStore();
+  const eegStore = useEegTestStore();
+  const labStore = useLabStore();
   const authStore = AuthStore();
   const { success, error } = useToast();
 
   const patientId = route.params.id as string;
   const isReadOnly = computed(() => authStore.role === AppRole.LAB_TECH);
 
+  // --- EEG Tests Logic ---
+  const isOrderEegModalOpen = ref(false);
+  const eegFormData = ref<any>({ testDate: new Date().toISOString().slice(0, 16) });
+  
+  const labOptions = computed(() => labStore.labs.map(l => ({ label: l.name, value: l.id })));
+  const appointmentOptions = computed(() => 
+    (patientStore.currentProfile?.lastVisits || [])
+      .filter(v => v.status !== AppointmentStatus.CANCELLED)
+      .map(v => ({ label: `${formatDate(v.dateTime, true)} with Dr. ${v.doctor?.lastName}`, value: v.id }))
+  );
+
+  const eegFields = computed<FormFieldRow[]>(() => [
+    [{ key: 'appointmentId', label: 'Related Appointment', type: 'select', items: appointmentOptions.value }],
+    [{ key: 'testDate', label: 'Test Date/Time', type: 'datetime-local' }],
+    [{ key: 'labId', label: 'Target Laboratory (Unit)', type: 'select', items: labOptions.value }],
+    [{ key: 'notes', label: 'Notes', type: 'textarea' }],
+  ]);
+
+  const handleOrderEeg = async (data: any) => {
+    const res = await eegStore.createTest(data);
+    if (res) {
+      success('EEG test ordered successfully');
+      isOrderEegModalOpen.value = false;
+      await eegStore.fetchPatientTests(patientId);
+    } else error(eegStore.error || 'Failed to order test');
+  };
+
+  const navigateToEegDetails = (id: string) => {
+    let prefix = 'admin';
+    if (authStore.role === AppRole.DOCTOR) prefix = 'doctor';
+    if (authStore.role === AppRole.LAB_TECH) prefix = 'lab-tech';
+    router.push({ name: `${prefix}-eeg-test-details`, params: { id } });
+  };
+
+  const eegStatusClasses: Record<number, string> = {
+    0: 'bg-blue-500/10 text-blue-500 ring-blue-500/30',
+    1: 'bg-amber-500/10 text-amber-500 ring-amber-500/30',
+    2: 'bg-indigo-500/10 text-indigo-500 ring-indigo-500/30',
+    3: 'bg-green-500/10 text-green-500 ring-green-500/30',
+    4: 'bg-error/10 text-error ring-error/30',
+  };
+
   const activeTab = ref('overview');
   const tabs = [
     { id: 'overview', label: 'Overview', icon: 'icon-[heroicons-outline--squares-2x2]' },
     { id: 'vitals', label: 'Vitals Log', icon: 'icon-[heroicons-outline--heart]' },
     { id: 'allergies', label: 'Allergies', icon: 'icon-[heroicons-outline--no-symbol]' },
+    { id: 'eeg', label: 'EEG Tests', icon: 'icon-[heroicons-outline--document-chart-bar]' },
   ];
 
   // --- Patient Edit Logic ---
@@ -569,5 +622,7 @@
     await allergyStore.fetchAllergies(patientId);
     await vitalsStore.fetchVitals(patientId);
     await doctorStore.fetchDoctors();
+    await eegStore.fetchPatientTests(patientId);
+    await labStore.fetchLabs();
   });
 </script>

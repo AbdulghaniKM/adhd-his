@@ -160,7 +160,7 @@
   import AppForm from '../../components/ui/Fields/AppForm.vue';
   import ConfirmDangerModal from '../../components/ui/ConfirmDangerModal.vue';
   import { useToast } from '../../composables/useToast';
-  import { mapPatientStatus, mapGender, mapBloodType, BloodTypeLabels } from '../../utils/enum-mapper';
+  import { useEnums } from '../../composables/useEnums';
   import { formatDate } from '../../utils/format-date';
   import { Gender, BloodType, PatientStatus, AppRole } from '../../types/enums.types';
   import type { TableColumn } from '../../components/ui/AppTable.vue';
@@ -171,6 +171,15 @@
   const doctorStore = useDoctorStore();
   const authStore = AuthStore();
   const { success, error } = useToast();
+
+  const { 
+    mapPatientStatus, 
+    mapGender, 
+    mapBloodType, 
+    bloodTypeLabels, 
+    genderLabels, 
+    patientStatusLabels 
+  } = useEnums();
 
   const columns: TableColumn[] = [
     {
@@ -229,8 +238,8 @@
         label: 'Gender',
         type: 'select',
         items: [
-          { label: 'Male', value: Gender.MALE },
-          { label: 'Female', value: Gender.FEMALE },
+          { label: genderLabels.value[Gender.MALE], value: Gender.MALE },
+          { label: genderLabels.value[Gender.FEMALE], value: Gender.FEMALE },
         ],
       },
     ],
@@ -239,7 +248,7 @@
         key: 'BloodType',
         label: 'Blood Type',
         type: 'select',
-        items: Object.entries(BloodTypeLabels).map(([value, label]) => ({
+        items: Object.entries(bloodTypeLabels.value).map(([value, label]) => ({
           label,
           value: Number(value),
         })),
@@ -249,8 +258,8 @@
         label: 'Status',
         type: 'select',
         items: [
-          { label: 'In Patient', value: PatientStatus.IN_PATIENT },
-          { label: 'Out Patient', value: PatientStatus.OUT_PATIENT },
+          { label: patientStatusLabels.value[PatientStatus.IN_PATIENT], value: PatientStatus.IN_PATIENT },
+          { label: patientStatusLabels.value[PatientStatus.OUT_PATIENT], value: PatientStatus.OUT_PATIENT },
         ],
       },
     ],
