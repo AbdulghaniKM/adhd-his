@@ -7,6 +7,7 @@
       </div>
       <div class="flex items-center gap-2">
         <AppButton
+          variant="primary"
           label="Add Department"
           icon="icon-[heroicons-outline--plus]"
           @click="openCreateModal"

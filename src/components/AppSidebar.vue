@@ -84,10 +84,10 @@
     </nav>
 
     <!-- Bottom Actions (Settings at the very end) -->
-    <div class="border-border/40 space-y-2 border-t p-3">
+    <div v-if="store.role === AppRole.DOCTOR" class="border-border/40 space-y-2 border-t p-3">
       <AppTooltip content="Settings" :disabled="!isCollapsed" placement="right">
         <router-link
-          to="/settings"
+          to="/doctor/settings"
           class="text-text-secondary hover:text-text hover:bg-muted/50 group flex items-center gap-3 rounded-lg py-2.5 text-[0.875rem] font-medium transition-all"
           :class="[isCollapsed ? 'justify-center px-0' : 'px-3']"
           active-class="bg-primary/5 text-primary! font-semibold ring-1 ring-primary/10 shadow-sm"
@@ -96,8 +96,10 @@
           <span v-if="!isCollapsed" class="truncate">Settings</span>
         </router-link>
       </AppTooltip>
+    </div>
 
-      <!-- Minimal Logout for Sidebar -->
+    <!-- Minimal Logout for Sidebar -->
+    <div class="border-border/40 border-t p-3">
       <AppTooltip content="Sign Out" :disabled="!isCollapsed" placement="right">
         <button
           class="text-text-secondary hover:text-error hover:bg-error/10 group flex w-full items-center gap-3 rounded-lg py-2.5 text-[0.875rem] font-medium transition-all"
