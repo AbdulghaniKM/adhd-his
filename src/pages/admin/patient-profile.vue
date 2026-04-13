@@ -303,21 +303,15 @@
   import { usePatientStore } from '../../stores/patient.store';
   import { useVitalsStore } from '../../stores/vitals.store';
   import { useAllergyStore } from '../../stores/allergy.store';
+  import { useDoctorStore } from '../../stores/doctor.store';
+  import { useEegTestStore } from '../../stores/eeg-test.store';
+  import { useLabStore } from '../../stores/lab.store';
   import { AuthStore } from '../../stores/auth.store';
   import { useToast } from '../../composables/useToast';
   import { formatDate } from '../../utils/format-date';
   import { useEnums } from '../../composables/useEnums';
   import { Gender, BloodType, PatientStatus, AppRole, AlergySeverity, AppointmentStatus } from '../../types/enums.types';
 
-  const { 
-    mapPatientStatus, 
-    mapGender, 
-    mapBloodType, 
-    mapAppointmentStatus, 
-    mapAllergySeverity: mapAlergySeverity,
-    bloodTypeLabels
-  } = useEnums();
-  import { useDoctorStore } from '../../stores/doctor.store';
   import AppTabs from '../../components/ui/AppTabs.vue';
   import AppTable from '../../components/ui/AppTable.vue';
   import AppButton from '../../components/ui/AppButton.vue';
@@ -327,6 +321,17 @@
   import ConfirmDangerModal from '../../components/ui/ConfirmDangerModal.vue';
   import type { TableColumn } from '../../components/ui/AppTable.vue';
   import type { FormFieldRow } from '../../types/form';
+
+  const { 
+    mapPatientStatus, 
+    mapGender, 
+    mapBloodType, 
+    mapAppointmentStatus, 
+    mapAllergySeverity: mapAlergySeverity,
+    mapEegTestStatus,
+    mapAdhdPrediction,
+    bloodTypeLabels
+  } = useEnums();
 
   const route = useRoute();
   const patientStore = usePatientStore();

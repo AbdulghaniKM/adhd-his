@@ -86,8 +86,19 @@
     </nav>
 
     <!-- Bottom Actions (Settings at the very end) -->
-    <div v-if="store.role === AppRole.DOCTOR" class="border-border/40 space-y-2 border-t p-3">
-      <AppTooltip content="Settings" :disabled="!isCollapsed" placement="right" full-width>
+    <div class="border-border/40 space-y-2 border-t p-3">
+      <AppTooltip content="Start Guide" :disabled="!isCollapsed" placement="right" full-width>
+        <button
+          class="text-text-secondary hover:text-primary hover:bg-primary/5 group flex w-full items-center gap-3 rounded-lg py-2.5 text-[0.875rem] font-medium transition-all"
+          :class="[isCollapsed ? 'justify-center px-0' : 'px-3']"
+          @click="startTour"
+        >
+          <span class="icon-[heroicons-outline--sparkles] text-xl opacity-80 group-hover:opacity-100" />
+          <span v-if="!isCollapsed" class="truncate">Help Guide</span>
+        </button>
+      </AppTooltip>
+
+      <AppTooltip v-if="store.role === AppRole.DOCTOR" content="Settings" :disabled="!isCollapsed" placement="right" full-width>
         <router-link
           to="/doctor/settings"
           class="text-text-secondary hover:text-text hover:bg-muted/50 group flex w-full items-center gap-3 rounded-lg py-2.5 text-[0.875rem] font-medium transition-all"
@@ -121,6 +132,7 @@ import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { AuthStore } from '../stores/auth.store';
 import { useSidebar } from '../composables/useSidebar';
+import { useTour } from '../composables/useTour';
 import { AppRole } from '../types/enums.types';
 import AppText from './ui/AppText.vue';
 import AppTooltip from './ui/AppTooltip.vue';
@@ -128,6 +140,11 @@ import AppTooltip from './ui/AppTooltip.vue';
 const store = AuthStore();
 const router = useRouter();
 const { isCollapsed } = useSidebar();
+const { startContextualTour } = useTour();
+
+const startTour = () => {
+  startContextualTour();
+};
 
 const isAdmin = computed(
   () =>
