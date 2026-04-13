@@ -95,40 +95,59 @@
 </template>
 
 <script setup lang="ts">
-  import { ref } from 'vue';
+  import { onMounted, computed } from 'vue';
   import AppIcon from '../../components/ui/AppIcon.vue';
   import AppButton from '../../components/ui/AppButton.vue';
+  import { useDoctorStore } from '../../stores/doctor.store';
+  import { usePatientStore } from '../../stores/patient.store';
+  import { useAppointmentStore } from '../../stores/appointment.store';
+  import { useLabStore } from '../../stores/lab.store';
 
-  const stats = ref([
+  const doctorStore = useDoctorStore();
+  const patientStore = usePatientStore();
+  const appointmentStore = useAppointmentStore();
+  const labStore = useLabStore();
+
+  const stats = computed(() => [
     {
       label: 'Medical Staff',
-      value: '24',
+      value: doctorStore.totalCount.toLocaleString(),
       icon: 'icon-[heroicons-outline--user-group]',
       bgClass: 'bg-primary/10',
       iconClass: 'text-primary',
     },
     {
       label: 'Patients',
-      value: '1,280',
+      value: patientStore.totalCount.toLocaleString(),
       icon: 'icon-[heroicons-outline--users]',
       bgClass: 'bg-secondary/10',
       iconClass: 'text-secondary',
     },
     {
       label: 'Appointments',
-      value: '42',
+      value: appointmentStore.totalCount.toLocaleString(),
       icon: 'icon-[heroicons-outline--calendar]',
       bgClass: 'bg-info/10',
       iconClass: 'text-info',
     },
     {
       label: 'Lab Units',
-      value: '8',
+      value: labStore.totalCount.toLocaleString(),
       icon: 'icon-[heroicons-outline--beaker]',
       bgClass: 'bg-accent/10',
       iconClass: 'text-accent',
     },
   ]);
+
+  onMounted(async () => {
+    // Fetch initial counts
+    await Promise.all([
+      doctorStore.fetchDoctors({ pageSize: 1 }),
+      patientStore.fetchPatients({ pageSize: 1 }),
+      appointmentStore.fetchAppointments({ pageSize: 1 }),
+      labStore.fetchLabs({ pageSize: 1 }),
+    ]);
+  });
 
   const quickActions = [
     { label: 'Staff Roster', icon: 'icon-[heroicons-outline--user-plus]', to: '/admin/doctors' },

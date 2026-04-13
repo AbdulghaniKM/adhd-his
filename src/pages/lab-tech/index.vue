@@ -95,40 +95,58 @@
 </template>
 
 <script setup lang="ts">
-  import { ref } from 'vue';
+  import { onMounted, computed } from 'vue';
   import AppIcon from '../../components/ui/AppIcon.vue';
   import AppButton from '../../components/ui/AppButton.vue';
+  import { useLabStore } from '../../stores/lab.store';
+  import { usePatientStore } from '../../stores/patient.store';
+  import { useEegTestStore } from '../../stores/eeg-test.store';
+  import { useDepartmentStore } from '../../stores/department.store';
 
-  const stats = ref([
+  const labStore = useLabStore();
+  const patientStore = usePatientStore();
+  const eegStore = useEegTestStore();
+  const departmentStore = useDepartmentStore();
+
+  const stats = computed(() => [
     {
       label: 'Assigned Units',
-      value: '3',
+      value: labStore.totalCount.toLocaleString(),
       icon: 'icon-[heroicons-outline--beaker]',
       bgClass: 'bg-primary/10',
       iconClass: 'text-primary',
     },
     {
       label: 'Total Patients',
-      value: '1,280',
+      value: patientStore.totalCount.toLocaleString(),
       icon: 'icon-[heroicons-outline--users]',
       bgClass: 'bg-secondary/10',
       iconClass: 'text-secondary',
     },
     {
       label: 'Active Tests',
-      value: '12',
+      value: eegStore.totalCount.toLocaleString(),
       icon: 'icon-[heroicons-outline--document-chart-bar]',
       bgClass: 'bg-info/10',
       iconClass: 'text-info',
     },
     {
       label: 'Departments',
-      value: '8',
+      value: departmentStore.departments.length.toString(),
       icon: 'icon-[heroicons-outline--building-office]',
       bgClass: 'bg-accent/10',
       iconClass: 'text-accent',
     },
   ]);
+
+  onMounted(async () => {
+    await Promise.all([
+      labStore.fetchLabs({ pageSize: 1 }),
+      patientStore.fetchPatients({ pageSize: 1 }),
+      eegStore.fetchTests({ pageSize: 1 }),
+      departmentStore.fetchDepartments(),
+    ]);
+  });
 
   const quickActions = [
     { label: 'Manage Units', icon: 'icon-[heroicons-outline--beaker]', to: '/lab-tech/labs' },

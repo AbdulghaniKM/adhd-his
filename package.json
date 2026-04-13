@@ -13,6 +13,7 @@
     "add-composable": "node scripts/add.js --composable"
   },
   "dependencies": {
+    "@floating-ui/vue": "^1.1.11",
     "@vueuse/core": "^13.1.0",
     "axios": "^1.8.4",
     "date-fns": "^4.1.0",

@@ -21,10 +21,7 @@
     <!-- Actions Section -->
     <div class="flex items-center gap-4">
       <!-- Theme Toggle -->
-      <AppTooltip
-        :content="isDark ? 'Light Appearance' : 'Dark Appearance'"
-        placement="bottom"
-      >
+      <AppTooltip :content="isDark ? 'Light Appearance' : 'Dark Appearance'" placement="bottom">
         <button
           type="button"
           class="border-border/40 bg-muted/30 text-text-secondary hover:bg-surface hover:text-text flex size-9 items-center justify-center rounded-xl border transition-all duration-200 hover:shadow-sm"
@@ -32,22 +29,12 @@
         >
           <span
             class="icon-[mdi--weather-sunny] text-lg transition-all duration-300"
-            :class="isDark ? 'scale-0 opacity-0 rotate-90' : 'scale-100 opacity-100 rotate-0'"
+            :class="isDark ? 'scale-0 rotate-90 opacity-0' : 'scale-100 rotate-0 opacity-100'"
           />
           <span
             class="icon-[mdi--weather-night] absolute text-lg transition-all duration-300"
-            :class="isDark ? 'scale-100 opacity-100 rotate-0' : 'scale-0 opacity-0 -rotate-90'"
+            :class="isDark ? 'scale-100 rotate-0 opacity-100' : 'scale-0 -rotate-90 opacity-0'"
           />
-        </button>
-      </AppTooltip>
-
-      <!-- Minimal Notification Placeholder (Figma Style) -->
-      <AppTooltip content="Notifications" placement="bottom">
-        <button
-          type="button"
-          class="border-border/40 bg-muted/30 text-text-secondary hover:bg-surface hover:text-text flex size-9 items-center justify-center rounded-xl border transition-all duration-200 hover:shadow-sm"
-        >
-          <span class="icon-[heroicons-outline--bell] text-lg" />
         </button>
       </AppTooltip>
     </div>
