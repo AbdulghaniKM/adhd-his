@@ -7,6 +7,8 @@ export const useAppointmentStore = defineStore('appointment', () => {
   const appointments = ref<AppointmentResponse[]>([]);
   const doctorAppointments = ref<AppointmentResponse[]>([]);
   const totalCount = ref(0);
+  const todayCount = ref(0);
+  const pendingCount = ref(0);
   const totalPages = ref(0);
   const pageNumber = ref(1);
   const pageSize = ref(10);
@@ -58,6 +60,21 @@ export const useAppointmentStore = defineStore('appointment', () => {
     }
   };
 
+  const fetchDashboardMetrics = async (doctorId: string) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const [todayRes, pendingRes] = await Promise.all([
+        appointmentService.getByDoctorId(doctorId, { dateFrom: today, dateTo: today, pageSize: 1 }),
+        appointmentService.getByDoctorId(doctorId, { status: 0, pageSize: 1 }), // 0 = Scheduled/Pending
+      ]);
+
+      if (todayRes.isSuccess) todayCount.value = todayRes.data.totalCount;
+      if (pendingRes.isSuccess) pendingCount.value = pendingRes.data.totalCount;
+    } catch (err) {
+      console.error('Failed to fetch dashboard metrics:', err);
+    }
+  };
+
   const updateStatus = async (id: string, data: UpdateAppointmentStatusRequest, isDoctor = false, doctorId?: string) => {
     loading.value = true;
     try {
@@ -65,6 +82,7 @@ export const useAppointmentStore = defineStore('appointment', () => {
       if (response.isSuccess) {
         if (isDoctor && doctorId) {
           await fetchDoctorAppointments(doctorId, lastFetchParams.value);
+          await fetchDashboardMetrics(doctorId);
         } else {
           await fetchAppointments(lastFetchParams.value);
         }
@@ -119,6 +137,8 @@ export const useAppointmentStore = defineStore('appointment', () => {
     appointments,
     doctorAppointments,
     totalCount,
+    todayCount,
+    pendingCount,
     totalPages,
     pageNumber,
     pageSize,
@@ -126,6 +146,7 @@ export const useAppointmentStore = defineStore('appointment', () => {
     error,
     fetchAppointments,
     fetchDoctorAppointments,
+    fetchDashboardMetrics,
     updateStatus,
     deleteAppointment,
     restoreAppointment,

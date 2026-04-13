@@ -5,7 +5,7 @@
       <div class="space-y-1">
         <h1 class="text-text text-3xl font-bold tracking-tight">Doctor Dashboard</h1>
         <p class="text-text-secondary text-sm">
-          Welcome back, <span class="text-primary font-semibold">Dr. {{ authStore.user?.name }}</span>. You have {{ todayAppointmentsCount }} appointments today.
+          Welcome back, <span class="text-primary font-semibold">Dr. {{ authStore.user?.name }}</span>. You have {{ appointmentStore.todayCount }} appointments today.
         </p>
       </div>
       <div class="flex items-center gap-3">
@@ -32,14 +32,14 @@
       </div>
       <div class="bg-surface border-border/40 group relative flex flex-col gap-1 overflow-hidden rounded-3xl border p-6 shadow-xs transition-all hover:shadow-lg hover:shadow-info/5">
         <span class="text-text-secondary text-[10px] font-bold tracking-widest uppercase opacity-60">Today's Schedule</span>
-        <span class="text-text text-3xl font-black tracking-tight tabular-nums">{{ todayAppointmentsCount }}</span>
+        <span class="text-text text-3xl font-black tracking-tight tabular-nums">{{ appointmentStore.todayCount }}</span>
         <div class="bg-info/5 absolute -right-2 -top-2 flex size-16 items-center justify-center rounded-full transition-transform group-hover:scale-110">
           <span class="icon-[heroicons-outline--clock] text-info/20 text-2xl" />
         </div>
       </div>
       <div class="bg-surface border-border/40 group relative flex flex-col gap-1 overflow-hidden rounded-3xl border p-6 shadow-xs transition-all hover:shadow-lg hover:shadow-warning/5">
         <span class="text-text-secondary text-[10px] font-bold tracking-widest uppercase opacity-60">Pending Review</span>
-        <span class="text-text text-3xl font-black tracking-tight tabular-nums">{{ pendingAppointmentsCount }}</span>
+        <span class="text-text text-3xl font-black tracking-tight tabular-nums">{{ appointmentStore.pendingCount }}</span>
         <div class="bg-warning/5 absolute -right-2 -top-2 flex size-16 items-center justify-center rounded-full transition-transform group-hover:scale-110">
           <span class="icon-[heroicons-outline--exclamation-circle] text-warning/20 text-2xl" />
         </div>
@@ -148,7 +148,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, onMounted, computed } from 'vue';
+  import { onMounted } from 'vue';
   import { AuthStore } from '../../stores/auth.store';
   import { useAppointmentStore } from '../../stores/appointment.store';
   import AppTable from '../../components/ui/AppTable.vue';
@@ -157,9 +157,9 @@
   import { useEnums } from '../../composables/useEnums';
   import { formatDate } from '../../utils/format-date';
   import { AppointmentStatus, AppointmentType } from '../../types/enums.types';
+  import type { TableColumn } from '../../components/ui/AppTable.vue';
 
   const { mapAppointmentType, mapAppointmentStatus } = useEnums();
-  import type { TableColumn } from '../../components/ui/AppTable.vue';
 
   const authStore = AuthStore();
   const appointmentStore = useAppointmentStore();
@@ -176,18 +176,10 @@
     { key: 'actions', label: 'Operations', class: 'text-end' },
   ];
 
-  const todayAppointmentsCount = computed(() => {
-    const today = new Date().toISOString().split('T')[0];
-    return appointmentStore.doctorAppointments.filter(a => a.dateTime.startsWith(today)).length;
-  });
-
-  const pendingAppointmentsCount = computed(() => {
-    return appointmentStore.doctorAppointments.filter(a => a.status === AppointmentStatus.SCHEDULED).length;
-  });
-
   const fetchAppointments = () => {
     if (authStore.user?.id) {
       appointmentStore.fetchDoctorAppointments(authStore.user.id);
+      appointmentStore.fetchDashboardMetrics(authStore.user.id);
     }
   };
 
