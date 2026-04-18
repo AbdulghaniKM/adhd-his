@@ -30,6 +30,14 @@ const appointmentService = {
     return response.data;
   },
 
+  create: async (data: any) => {
+    const response = await api.post<ApiSingleResponse<AppointmentResponse>>(
+      API_PATHS.APPOINTMENTS.ALL,
+      data,
+    );
+    return response.data;
+  },
+
   updateStatus: async (id: string, data: UpdateAppointmentStatusRequest) => {
     const response = await api.put<ApiSingleResponse<AppointmentResponse>>(
       API_PATHS.APPOINTMENTS.STATUS(id),

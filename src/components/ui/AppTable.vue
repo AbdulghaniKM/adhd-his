@@ -83,10 +83,24 @@
                   </div>
                 </button>
               </div>
-              <div class="border-border/40 mt-2 border-t pt-2">
+              <div class="border-border/40 mt-2 border-t pt-2 grid grid-cols-2 gap-2 px-1">
                 <button
                   type="button"
-                  class="text-primary hover:bg-primary/5 flex w-full items-center justify-center gap-2 rounded-xl py-2 text-[11px] font-bold uppercase tracking-wider transition-all"
+                  class="text-primary hover:bg-primary/5 flex items-center justify-center gap-2 rounded-xl py-2 text-[10px] font-bold uppercase tracking-wider transition-all"
+                  @click="showAllColumns"
+                >
+                  Show All
+                </button>
+                <button
+                  type="button"
+                  class="text-text-secondary hover:bg-muted flex items-center justify-center gap-2 rounded-xl py-2 text-[10px] font-bold uppercase tracking-wider transition-all"
+                  @click="hideAllColumns"
+                >
+                  Hide All
+                </button>
+                <button
+                  type="button"
+                  class="text-primary hover:bg-primary/5 flex col-span-2 items-center justify-center gap-2 rounded-xl py-2 text-[10px] font-bold uppercase tracking-wider transition-all border-t border-border/40 mt-1"
                   @click="resetColumnVisibility"
                 >
                   <AppIcon name="icon-[heroicons-outline--arrow-path]" :size="0.75" />
@@ -596,6 +610,34 @@ export interface TableColumn {
     columnVisibility.value = {};
     if (props.columnsVisibilityKey)
       localStorage.removeItem(STORAGE_PREFIX + props.columnsVisibilityKey);
+  }
+
+  function showAllColumns() {
+    const newVisibility: Record<string, boolean> = {};
+    toggleableColumns.value.forEach((col) => {
+      newVisibility[col.key] = true;
+    });
+    columnVisibility.value = newVisibility;
+    if (props.columnsVisibilityKey) {
+      localStorage.setItem(
+        STORAGE_PREFIX + props.columnsVisibilityKey,
+        JSON.stringify(newVisibility),
+      );
+    }
+  }
+
+  function hideAllColumns() {
+    const newVisibility: Record<string, boolean> = {};
+    toggleableColumns.value.forEach((col) => {
+      newVisibility[col.key] = false;
+    });
+    columnVisibility.value = newVisibility;
+    if (props.columnsVisibilityKey) {
+      localStorage.setItem(
+        STORAGE_PREFIX + props.columnsVisibilityKey,
+        JSON.stringify(newVisibility),
+      );
+    }
   }
 
   // ── Selection Logic ──────────────────────────────────────────────────────────────────────────────────

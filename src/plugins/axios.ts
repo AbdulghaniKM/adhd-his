@@ -2,6 +2,7 @@ import axios from 'axios';
 import { getApiUrl } from '../config/env';
 import { AuthStore } from '../stores/auth.store';
 import { pinia } from '../main';
+import { useToast } from '../composables/useToast';
 
 const api = axios.create({
   baseURL: getApiUrl(),
@@ -29,14 +30,19 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-// ── Response: handle 401 ────────────────────────────────────────────
+// ── Response: handle 401 & errors ──────────────────────────────────
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    const toast = useToast();
+    
     if (error.response?.status === 401) {
       const store = AuthStore(pinia);
       store.clearSession();
       // Optionally redirect: window.location.href = '/login';
+    } else {
+      const message = error.response?.data?.message || error.message || 'An unexpected error occurred';
+      toast.error(message);
     }
     return Promise.reject(error);
   },

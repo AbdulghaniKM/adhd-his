@@ -112,6 +112,7 @@
       <AppForm
         v-model="formData"
         :fields="formFields"
+        :schema="adminSchema"
         :is-submitting="adminStore.loading"
         @submitted="handleSubmit"
       />
@@ -134,6 +135,7 @@
 
 <script setup lang="ts">
   import { ref, onMounted, computed } from 'vue';
+  import { z } from 'zod';
   import { useAdminStore } from '../../stores/admin.store';
   import AppTable from '../../components/ui/AppTable.vue';
   import AppButton from '../../components/ui/AppButton.vue';
@@ -146,6 +148,26 @@
 
   const adminStore = useAdminStore();
   const { success, error } = useToast();
+
+  const adminSchema = computed(() => {
+    return z.object({
+      FirstName: z.string().min(2, 'First name is too short'),
+      LastName: z.string().min(2, 'Last name is too short'),
+      Username: z.string().min(3, 'Username must be at least 3 characters'),
+      Email: z.string().email('Invalid email address'),
+      Password: editingAdmin.value 
+        ? z.string().optional().or(z.literal(''))
+        : z.string().min(8, 'Password must be at least 8 characters'),
+      CurrentPassword: z.string().optional().or(z.literal('')),
+      NewPassword: z.string().min(8, 'New password must be at least 8 characters').optional().or(z.literal('')),
+    }).refine(data => {
+      if (editingAdmin.value && data.NewPassword && !data.CurrentPassword) return false;
+      return true;
+    }, {
+      message: "Current password is required to change password",
+      path: ["CurrentPassword"]
+    });
+  });
 
   const selectedAdmins = ref<any[]>([]);
   const isHardDelete = ref(false);

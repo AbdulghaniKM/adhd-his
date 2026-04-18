@@ -108,6 +108,7 @@
       <AppForm
         v-model="formData"
         :fields="formFields"
+        :schema="labTechSchema"
         :is-submitting="labTechStore.loading"
         @submitted="handleSubmit"
       />
@@ -130,6 +131,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
+import { z } from 'zod';
 import { useLabTechStore } from '../../stores/lab-tech.store';
 import { useLabStore } from '../../stores/lab.store';
 import AppTable from '../../components/ui/AppTable.vue';
@@ -145,6 +147,28 @@ const labTechStore = useLabTechStore();
 const labStore = useLabStore();
 const { success, error } = useToast();
 
+const labTechSchema = computed(() => {
+  return z.object({
+    FirstName: z.string().min(2, 'First name is too short'),
+    LastName: z.string().min(2, 'Last name is too short'),
+    Username: z.string().min(3, 'Username must be at least 3 characters'),
+    Email: z.string().email('Invalid email address'),
+    LabId: z.string().uuid('Please select a lab'),
+    Phone: z.string().min(1, 'Phone is required'),
+    Password: editingTech.value 
+      ? z.string().optional().or(z.literal(''))
+      : z.string().min(8, 'Password must be at least 8 characters'),
+    CurrentPassword: z.string().optional().or(z.literal('')),
+    NewPassword: z.string().min(8, 'New password must be at least 8 characters').optional().or(z.literal('')),
+  }).refine(data => {
+    if (editingTech.value && data.NewPassword && !data.CurrentPassword) return false;
+    return true;
+  }, {
+    message: "Current password is required to change password",
+    path: ["CurrentPassword"]
+  });
+});
+
 const isHardDelete = ref(false);
 
 const columns: TableColumn[] = [
@@ -159,23 +183,43 @@ const labOptions = computed(() =>
   labStore.labs.map(l => ({ label: l.name, value: l.id }))
 );
 
-const formFields = computed<FormFieldRow[]>(() => [
-  [
-    { key: 'FirstName', label: 'First Name', type: 'text' },
-    { key: 'LastName', label: 'Last Name', type: 'text' },
-  ],
-  [
-    { key: 'Username', label: 'Username', type: 'text' },
-    { key: 'Email', label: 'Email', type: 'email' },
-  ],
-  [
-    { key: 'LabId', label: 'Assigned Lab', type: 'select', items: labOptions.value },
-    { key: 'Phone', label: 'Phone', type: 'phone' },
-  ],
-  [
-    { key: 'Password', label: 'Password', type: 'password', placeholder: 'Leave empty to keep current password if editing' },
-  ],
-]);
+const formFields = computed<FormFieldRow[]>(() => {
+  const fields: FormFieldRow[] = [
+    [
+      { key: 'FirstName', label: 'First Name', type: 'text' },
+      { key: 'LastName', label: 'Last Name', type: 'text' },
+    ],
+    [
+      { key: 'Username', label: 'Username', type: 'text' },
+      { key: 'Email', label: 'Email', type: 'email' },
+    ],
+    [
+      { key: 'LabId', label: 'Assigned Lab', type: 'select', items: labOptions.value },
+      { key: 'Phone', label: 'Phone', type: 'phone' },
+    ],
+  ];
+
+  if (editingTech.value) {
+    fields.push([
+      {
+        key: 'CurrentPassword',
+        label: 'Current Password',
+        type: 'password',
+        placeholder: 'Current password to change',
+      },
+      {
+        key: 'NewPassword',
+        label: 'New Password',
+        type: 'password',
+        placeholder: 'New password',
+      },
+    ]);
+  } else {
+    fields.push([{ key: 'Password', label: 'Password', type: 'password' }]);
+  }
+
+  return fields;
+});
 
 const isModalOpen = ref(false);
 const editingTech = ref<any>(null);
@@ -219,7 +263,6 @@ const openEditModal = (tech: any) => {
 const handleSubmit = async (data: any) => {
   let res;
   if (editingTech.value) {
-    if (!data.Password) delete data.Password;
     res = await labTechStore.updateLabTech(editingTech.value.id, data);
   } else {
     res = await labTechStore.createLabTech(data);

@@ -105,6 +105,7 @@
       <AppForm
         v-model="formData"
         :fields="formFields"
+        :schema="doctorSchema"
         :is-submitting="doctorStore.loading"
         @submitted="handleSubmit"
       />
@@ -127,6 +128,7 @@
 
 <script setup lang="ts">
   import { ref, onMounted, computed } from 'vue';
+  import { z } from 'zod';
   import { useDoctorStore } from '../../stores/doctor.store';
   import { useDepartmentStore } from '../../stores/department.store';
   import AppTable from '../../components/ui/AppTable.vue';
@@ -146,6 +148,32 @@
   const { success, error } = useToast();
 
   const { mapGender, mapBloodType, bloodTypeLabels, genderLabels } = useEnums();
+
+  const doctorSchema = computed(() => {
+    return z.object({
+      FirstName: z.string().min(2, 'First name is too short'),
+      LastName: z.string().min(2, 'Last name is too short'),
+      Username: z.string().min(3, 'Username must be at least 3 characters'),
+      Email: z.string().email('Invalid email address'),
+      DepartmentId: z.string().uuid('Please select a department'),
+      MedicalLicenseNumber: z.string().min(1, 'License number is required'),
+      YearsOfExperience: z.number().min(0),
+      BirthDate: z.string().min(1, 'Birth date is required'),
+      Gender: z.nativeEnum(Gender),
+      BloodType: z.nativeEnum(BloodType),
+      Password: editingDoctor.value 
+        ? z.string().optional().or(z.literal(''))
+        : z.string().min(8, 'Password must be at least 8 characters'),
+      CurrentPassword: z.string().optional().or(z.literal('')),
+      NewPassword: z.string().min(8, 'New password must be at least 8 characters').optional().or(z.literal('')),
+    }).refine(data => {
+      if (editingDoctor.value && data.NewPassword && !data.CurrentPassword) return false;
+      return true;
+    }, {
+      message: "Current password is required to change password",
+      path: ["CurrentPassword"]
+    });
+  });
 
   const columns: TableColumn[] = [
     {

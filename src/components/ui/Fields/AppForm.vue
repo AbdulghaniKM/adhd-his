@@ -17,7 +17,8 @@
         <!-- Input Field -->
         <InputField
           v-if="field.type === 'text' || field.type === 'password' || field.type === 'email' || field.type === 'number' || field.type === 'datetime-local'"
-          v-model="modelValue[field.key]"
+          :model-value="modelValue[field.key]"
+          @update:model-value="(val) => updateField(field.key, val)"
           :label="field.label"
           :type="field.type"
           :placeholder="field.placeholder"
@@ -28,7 +29,8 @@
         <!-- Textarea -->
         <Textarea
           v-else-if="field.type === 'textarea'"
-          v-model="modelValue[field.key]"
+          :model-value="modelValue[field.key]"
+          @update:model-value="(val) => updateField(field.key, val)"
           :label="field.label"
           :placeholder="field.placeholder"
           :readonly="field.readonly"
@@ -39,7 +41,8 @@
         <!-- Select -->
         <Select
           v-else-if="field.type === 'select'"
-          v-model="modelValue[field.key]"
+          :model-value="modelValue[field.key]"
+          @update:model-value="(val) => updateField(field.key, val)"
           :label="field.label"
           :items="field.items || []"
           :placeholder="field.placeholder"
@@ -51,7 +54,8 @@
         <!-- Phone Input -->
         <PhoneInput
           v-else-if="field.type === 'phone'"
-          v-model="modelValue[field.key]"
+          :model-value="modelValue[field.key]"
+          @update:model-value="(val) => updateField(field.key, val)"
           :label="field.label"
           :placeholder="field.placeholder"
           :readonly="field.readonly"
@@ -61,7 +65,8 @@
         <!-- DatePicker -->
         <DatePicker
           v-else-if="field.type === 'date' || field.type === 'datetime'"
-          v-model="modelValue[field.key]"
+          :model-value="modelValue[field.key]"
+          @update:model-value="(val) => updateField(field.key, val)"
           :label="field.label"
           :mode="field.type === 'datetime' ? 'datetime' : 'date'"
           :placeholder="field.placeholder"
@@ -134,6 +139,11 @@ const emit = defineEmits<{
 
 const errors = ref<Record<string, string>>({});
 const isSubmitting = ref(false);
+
+const updateField = (key: string, value: any) => {
+  const newValue = { ...props.modelValue, [key]: value };
+  emit('update:modelValue', newValue);
+};
 
 useFormValidation(props.modelValue, props.schema, errors);
 

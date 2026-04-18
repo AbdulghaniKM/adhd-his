@@ -75,6 +75,24 @@ export const useAppointmentStore = defineStore('appointment', () => {
     }
   };
 
+  const createAppointment = async (data: any) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await appointmentService.create(data);
+      if (response.isSuccess) {
+        await fetchAppointments(lastFetchParams.value);
+        return response.data;
+      }
+      return null;
+    } catch (err: any) {
+      error.value = err.message || 'Failed to create appointment';
+      return null;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   const updateStatus = async (id: string, data: UpdateAppointmentStatusRequest, isDoctor = false, doctorId?: string) => {
     loading.value = true;
     try {
@@ -147,6 +165,7 @@ export const useAppointmentStore = defineStore('appointment', () => {
     fetchAppointments,
     fetchDoctorAppointments,
     fetchDashboardMetrics,
+    createAppointment,
     updateStatus,
     deleteAppointment,
     restoreAppointment,
